@@ -13,6 +13,7 @@
       
       /* === 尺寸設定 === */
       --item-height: 100px; 
+      /* 顯示區高度 3格 */
       --slot-view-height: calc(var(--item-height) * 3);
     }
 
@@ -58,18 +59,39 @@
 
     .promo-link {
       display: inline-block;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       color: var(--primary);
       text-decoration: none;
       font-size: 0.95rem;
       font-weight: bold;
       border-bottom: 2px dashed var(--primary);
       padding-bottom: 2px;
-      transition: 0.3s;
     }
-    .promo-link:hover {
-      color: var(--accent);
-      border-color: var(--accent);
+
+    /* === 新增：庫存顯示區 === */
+    #stock-area {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .stock-badge {
+      background: #fce4ec;
+      border: 1px solid #f8bbd0;
+      color: #c2185b;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .stock-badge span {
+      background: white;
+      padding: 1px 6px;
+      border-radius: 10px;
+      margin-left: 5px;
+      color: var(--primary);
     }
     
     input[type="text"] {
@@ -135,7 +157,6 @@
       position: relative;
     }
 
-    /* SVG 中獎線 */
     .win-line-svg {
       position: absolute;
       top: 0; left: 0;
@@ -177,16 +198,18 @@
       will-change: transform;
     }
 
+    /* 強制設定 box-sizing 和高度，避免空隙 */
     .slot-item {
       height: var(--item-height);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      box-sizing: border-box;
+      box-sizing: border-box; 
       border-bottom: 1px solid #eee;
       padding: 5px;
       overflow: hidden;
+      background: white; /* 確保背景是白的，不是透明 */
     }
 
     .slot-img {
@@ -239,13 +262,10 @@
     .error { color: #e53935; }
 
     @media screen and (max-width: 600px) {
-      :root {
-        --item-height: 80px; 
-      }
+      :root { --item-height: 80px; }
       .slot-text { font-size: 0.7rem; }
       h1 { font-size: 1.4rem; }
     }
-
     @keyframes popIn {
       0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -267,6 +287,8 @@
          🌟 台北大巨蛋週五場線上應援文章 🌟
       </a>
       
+      <div id="stock-area">載入庫存中...</div>
+
       <p style="color:#888; font-size:0.9rem; margin-top:10px;">輸入序號開始轉動幸運</p>
       
       <input type="text" id="code-input" placeholder="請輸入序號" maxlength="8" autocomplete="off">
@@ -309,15 +331,13 @@
     // ★★★ 請替換成您的 GAS 網址 ★★★
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
-    // 全域變數
-    // CATALOG.types: 種類名稱 -> 圖片陣列
-    // CATALOG.relations: 種類名稱 -> { 角色名稱 -> 圖片陣列 }
+    // 全域資料
     let CATALOG = { 
       types: {}, 
-      relations: {} 
+      relations: {},
+      stocks: {} // 儲存庫存資料
     };
     
-    // 預設資料
     const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
     const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
 
@@ -339,6 +359,7 @@
     const overlay = document.getElementById('overlay');
     const loadingHint = document.getElementById('loading-hint');
     const winPath = document.getElementById('win-path');
+    const stockArea = document.getElementById('stock-area');
 
     window.onload = function() { fetchCatalog(); };
 
@@ -351,10 +372,12 @@
         .then(data => {
           if(data.ok) {
             processCatalog(data);
+            renderStocks(); // 繪製庫存
             loadingHint.style.display = 'none';
             drawBtn.disabled = false;
           } else {
             loadingHint.textContent = '使用純文字模式';
+            stockArea.textContent = '庫存資訊無法載入';
             drawBtn.disabled = false;
           }
         })
@@ -365,17 +388,35 @@
     }
 
     function processCatalog(data) {
-      // 1. 處理種類圖片
       if (data.typeImages) {
         for (const [type, imgs] of Object.entries(data.typeImages)) {
           if (imgs && imgs.length > 0) CATALOG.types[type] = imgs;
         }
       }
-      // 2. 處理關係圖片 (Type -> Lovelys -> Images)
-      // GAS 回傳結構: typeLovelyImages[type][color] = [imgs]
-      // 我們直接存下來，這樣第二階段就可以根據 type 找圖
       if (data.typeLovelyImages) {
         CATALOG.relations = data.typeLovelyImages;
+      }
+      // 處理庫存
+      if (data.typeStocks) {
+        CATALOG.stocks = data.typeStocks;
+      }
+    }
+
+    function renderStocks() {
+      stockArea.innerHTML = '';
+      if (Object.keys(CATALOG.stocks).length === 0) {
+        stockArea.textContent = '目前沒有庫存資料';
+        return;
+      }
+      
+      // 排序並顯示
+      for (const [type, count] of Object.entries(CATALOG.stocks)) {
+        if (count > 0) {
+          const badge = document.createElement('div');
+          badge.className = 'stock-badge';
+          badge.innerHTML = `${type} <span>${count}</span>`;
+          stockArea.appendChild(badge);
+        }
       }
     }
 
@@ -434,32 +475,25 @@
 
       const typeKeys = Object.keys(CATALOG.types).length > 0 ? Object.keys(CATALOG.types) : DEFAULT_TYPES;
       
-      // === 第一階段：抽種類 ===
       machineStatus.textContent = '✨ 抽選種類中... ✨';
-      // 注意：這裡 contextType 傳 null，因為第一階段不需要依賴其他資訊
       await spinAllReels(typeKeys, data.type, 'TYPE', pattern, null);
 
       winPath.classList.add('show');
       await wait(1000);
       winPath.classList.remove('show');
 
-      // 準備第二階段的 key (角色名)
-      // 我們可以從 Catalog 裡的 relations 抓出所有角色名，或者用預設的
-      // 這裡簡單處理：如果有 relations[data.type] 就用裡面的 keys，否則用預設
       let colorKeys = DEFAULT_LOVELYS;
       if (CATALOG.relations[data.type]) {
         const keys = Object.keys(CATALOG.relations[data.type]);
         if (keys.length > 0) colorKeys = keys;
       }
 
-      // === 第二階段：抽角色 ===
       machineStatus.textContent = '💖 召喚 LOVELYS... 💖';
       machineStatus.style.color = '#ffeb3b';
       
       const pattern2 = WIN_PATTERNS[Math.floor(Math.random() * WIN_PATTERNS.length)];
       winPath.setAttribute('d', pattern2.svg);
       
-      // ★★★ 修正關鍵：把 data.type 傳進去，讓 getRandomImg 知道要抓哪個種類的圖 ★★★
       await spinAllReels(colorKeys, data.color, 'COLOR', pattern2, data.type);
 
       winPath.classList.add('show');
@@ -468,7 +502,6 @@
       showFinalResult(data);
     }
 
-    // 增加參數：contextType (用於第二階段鎖定種類)
     function spinAllReels(poolKeys, targetText, mode, pattern, contextType) {
       return new Promise(resolve => {
         const reels = [
@@ -496,13 +529,19 @@
         html += createSlotItemHtml(randomKey, imgUrl);
       }
 
+      // === 結構優化：防止空白 ===
+      // 上方裝飾 (1個)
       const prevKey = pool[Math.floor(Math.random() * pool.length)];
       html += createSlotItemHtml(prevKey, getRandomImg(mode, prevKey, contextType));
 
+      // ★ 目標 (索引 count+1)
       html += createSlotItemHtml(target, getRandomImg(mode, target, contextType));
 
-      const nextKey = pool[Math.floor(Math.random() * pool.length)];
-      html += createSlotItemHtml(nextKey, getRandomImg(mode, nextKey, contextType));
+      // 下方裝飾 (增加到 3 個，確保就算停在最下面，下面還有東西)
+      for(let k=0; k<3; k++) {
+        const nextKey = pool[Math.floor(Math.random() * pool.length)];
+        html += createSlotItemHtml(nextKey, getRandomImg(mode, nextKey, contextType));
+      }
 
       element.innerHTML = html;
       
@@ -520,16 +559,12 @@
       }
     }
 
-    // ★★★ 修正後的圖片選取邏輯 ★★★
     function getRandomImg(mode, key, contextType) {
       if (mode === 'TYPE') {
-        // 第一階段：直接拿該種類的圖
         const arr = CATALOG.types[key];
         if (arr && arr.length > 0) return arr[Math.floor(Math.random() * arr.length)];
       } 
       else if (mode === 'COLOR') {
-        // 第二階段：要拿「contextType (種類) 底下的 key (角色)」的圖
-        // 例如：contextType="車車", key="TZUVELY" -> 找 車車底下的 TZUVELY
         if (contextType && CATALOG.relations[contextType]) {
           const arr = CATALOG.relations[contextType][key];
           if (arr && arr.length > 0) return arr[Math.floor(Math.random() * arr.length)];
@@ -559,6 +594,13 @@
         img.style.display = 'block';
       } else {
         img.style.display = 'none';
+      }
+
+      // === 前端即時扣庫存 (不用重新整理) ===
+      if (CATALOG.stocks[data.type]) {
+        CATALOG.stocks[data.type]--;
+        if (CATALOG.stocks[data.type] < 0) CATALOG.stocks[data.type] = 0;
+        renderStocks(); // 重新繪製庫存標籤
       }
 
       overlay.style.display = 'block';
