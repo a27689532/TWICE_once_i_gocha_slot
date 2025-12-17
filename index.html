@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>LOVELYS 豪華拉霸機</title>
+  <title>TWICE ❤️ ONCE I GOCHA</title>
   <style>
     :root {
       --primary: #ff6f91;
@@ -12,9 +12,7 @@
       --bg: #fff0f5;
       
       /* === 尺寸設定 === */
-      /* 單格高度 (圖片高度) */
       --item-height: 100px; 
-      /* 顯示區域高度 = 單格 x 3 (3x3 佈局) */
       --slot-view-height: calc(var(--item-height) * 3);
     }
 
@@ -46,9 +44,34 @@
       border-radius: 25px;
       box-shadow: 0 10px 30px rgba(214, 93, 177, 0.2);
       border: 3px solid white;
+      position: relative;
+      z-index: 20;
     }
 
-    h1 { color: var(--accent); margin-top: 0; font-size: 1.8rem; text-transform: uppercase; }
+    h1 { 
+      color: var(--accent); 
+      margin-top: 0; 
+      font-size: 1.6rem; 
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    /* 新增：應援連結樣式 */
+    .promo-link {
+      display: inline-block;
+      margin-bottom: 25px;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: bold;
+      border-bottom: 2px dashed var(--primary);
+      padding-bottom: 2px;
+      transition: 0.3s;
+    }
+    .promo-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
     
     input[type="text"] {
       width: 100%;
@@ -81,13 +104,14 @@
     }
     .btn-draw:disabled { background: #ccc; cursor: wait; transform: none; box-shadow: none; }
 
-    /* === 拉霸機區域 (3x3) === */
+    /* === 拉霸機區域 === */
     #slot-machine-area {
       display: none;
       background: var(--accent);
       padding: 15px;
       border-radius: 20px;
       box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      position: relative;
     }
 
     .machine-status {
@@ -96,6 +120,7 @@
       margin-bottom: 15px;
       font-weight: bold;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      min-height: 1.5em;
     }
 
     .slot-container {
@@ -106,23 +131,30 @@
       padding: 5px;
       border-radius: 10px;
       border: 5px solid #ffccbc;
-      height: var(--slot-view-height); /* 300px on desktop */
+      height: var(--slot-view-height);
       overflow: hidden;
       position: relative;
     }
 
-    /* 3x3 中間的中獎線 (紅線) */
-    .win-line {
+    /* SVG 中獎線 */
+    .win-line-svg {
       position: absolute;
-      top: 50%; left: -10px; right: -10px;
-      height: 4px;
-      background: rgba(255, 0, 0, 0.6);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 10;
-      transform: translateY(-50%);
-      box-shadow: 0 0 10px red;
       pointer-events: none;
     }
-    /* 玻璃反光質感 */
+    .win-path {
+      stroke: rgba(255, 0, 0, 0.8);
+      stroke-width: 8;
+      stroke-linecap: round;
+      fill: none;
+      filter: drop-shadow(0 0 5px red);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .win-path.show { opacity: 1; }
+
     .slot-container::after {
       content: '';
       position: absolute;
@@ -143,12 +175,11 @@
     .reel-strip {
       position: absolute;
       top: 0; left: 0; width: 100%;
-      /* 初始位置稍微調整，確保對齊 */
       will-change: transform;
     }
 
     .slot-item {
-      height: var(--item-height); /* 固定高度 */
+      height: var(--item-height);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -159,13 +190,11 @@
       overflow: hidden;
     }
 
-    /* 拉霸機內的圖片 */
     .slot-img {
       width: 100%;
-      height: 80%; /* 圖片佔格子的 80% */
+      height: 80%;
       object-fit: contain;
     }
-    /* 拉霸機內的文字 */
     .slot-text {
       font-size: 0.8rem;
       color: #333;
@@ -210,13 +239,12 @@
     .status-msg { margin-top: 10px; color: var(--primary); font-weight: bold; font-size: 0.9rem; }
     .error { color: #e53935; }
 
-    /* === 手機版調整 === */
     @media screen and (max-width: 600px) {
       :root {
-        /* 手機版縮小一點，避免太長 */
         --item-height: 80px; 
       }
       .slot-text { font-size: 0.7rem; }
+      h1 { font-size: 1.4rem; }
     }
 
     @keyframes popIn {
@@ -232,8 +260,15 @@
   <div class="container">
     
     <div id="start-screen">
-      <h1>LOVELYS 抽獎</h1>
-      <p style="color:#888; font-size:0.9rem;">輸入序號開始轉動幸運</p>
+      <h1>TWICE ❤️ ONCE I GOCHA</h1>
+      
+      <a href="https://www.threads.com/@a27689532/post/DRlXgWvkiG9?xmt=AQF0m11o5sqKyTq1bZQteVidEod1mjd1eYCTce4RUaumCg" 
+         target="_blank" 
+         class="promo-link">
+         🌟 台北大巨蛋週五場線上應援文章 🌟
+      </a>
+      
+      <p style="color:#888; font-size:0.9rem; margin-top:10px;">輸入序號開始轉動幸運</p>
       
       <input type="text" id="code-input" placeholder="請輸入序號" maxlength="8" autocomplete="off">
       <button id="draw-btn" class="btn-draw">開始抽獎</button>
@@ -246,8 +281,10 @@
       <div id="machine-status" class="machine-status">準備啟動...</div>
       
       <div class="slot-container">
-        <div class="win-line"></div>
-        
+        <svg class="win-line-svg" viewBox="0 0 300 300" preserveAspectRatio="none">
+           <path id="win-path" class="win-path" d="" />
+        </svg>
+
         <div class="reel"><div class="reel-strip" id="reel-1"></div></div>
         <div class="reel"><div class="reel-strip" id="reel-2"></div></div>
         <div class="reel"><div class="reel-strip" id="reel-3"></div></div>
@@ -264,7 +301,7 @@
         <strong id="final-code" style="color:#555;"></strong>
       </div>
       <br>
-      <button onclick="location.reload()" class="btn-draw" style="margin-top:20px; padding:10px 30px;">再玩一次</button>
+      <button onclick="resetGame()" class="btn-draw" style="margin-top:20px; padding:10px 30px;">再玩一次</button>
     </div>
 
   </div>
@@ -273,15 +310,21 @@
     // ★★★ 請替換成您的 GAS 網址 ★★★
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
-    // 全域變數：用來儲存從後端抓下來的圖片對照表
-    let CATALOG = {
-      types: {},   // 種類 -> 代表圖片 URL
-      colors: {}   // 顏色(LOVELYS) -> 代表圖片 URL
-    };
+    // 全域變數
+    let CATALOG = { types: {}, colors: {} };
     
-    // 預設填充用 (萬一圖片沒載入)
+    // 預設資料
     const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
-    const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENGVELY', 'DAHYUN', 'NAYEON', 'JEONGYEON'];
+    const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
+
+    // 中獎模式
+    const WIN_PATTERNS = [
+      { name: 'MIDDLE', rows: [1, 1, 1], svg: 'M0,150 L300,150' },
+      { name: 'TOP',    rows: [0, 0, 0], svg: 'M0,50 L300,50' },
+      { name: 'BOTTOM', rows: [2, 2, 2], svg: 'M0,250 L300,250' },
+      { name: 'DIAG_TL',rows: [0, 1, 2], svg: 'M0,50 L300,250' },
+      { name: 'DIAG_BL',rows: [2, 1, 0], svg: 'M0,250 L300,50' }
+    ];
 
     const drawBtn = document.getElementById('draw-btn');
     const codeInput = document.getElementById('code-input');
@@ -292,15 +335,14 @@
     const resultCard = document.getElementById('result-card');
     const overlay = document.getElementById('overlay');
     const loadingHint = document.getElementById('loading-hint');
+    const winPath = document.getElementById('win-path');
 
-    // === 1. 初始化：網頁載入時先去抓 Catalog (為了圖片) ===
-    window.onload = function() {
-      fetchCatalog();
-    };
+    // 只在網頁第一次打開時下載圖片，之後玩第二次都不用下載
+    window.onload = function() { fetchCatalog(); };
 
     function fetchCatalog() {
       loadingHint.style.display = 'block';
-      drawBtn.disabled = true; // 尚未載入完成前不能按
+      drawBtn.disabled = true;
 
       fetch(API_URL + '?action=catalog')
         .then(res => res.json())
@@ -309,56 +351,66 @@
             processCatalog(data);
             loadingHint.style.display = 'none';
             drawBtn.disabled = false;
-            console.log('圖片素材載入完成', CATALOG);
           } else {
-            console.warn('Catalog load failed', data);
-            loadingHint.textContent = '圖片載入失敗，將使用純文字模式';
+            loadingHint.textContent = '使用純文字模式';
             drawBtn.disabled = false;
           }
         })
         .catch(err => {
-          console.error(err);
           loadingHint.textContent = '連線異常';
           drawBtn.disabled = false;
         });
     }
 
-    // 處理後端回傳的資料，建立「種類 -> 圖片」與「Lovelys -> 圖片」的索引
     function processCatalog(data) {
-      // 1. 處理 Types (種類)
       if (data.typeImages) {
         for (const [type, imgs] of Object.entries(data.typeImages)) {
-          if (imgs && imgs.length > 0) {
-            CATALOG.types[type] = imgs[0]; // 每個種類只取第一張當代表圖
-          }
+          if (imgs && imgs.length > 0) CATALOG.types[type] = imgs;
         }
       }
-
-      // 2. 處理 Colors (Lovelys)
-      // 資料結構是 typeLovelyImages[type][color] = [imgs...]
-      // 我們要把它攤平變成 colors[color] = img
       if (data.typeLovelyImages) {
         for (const typeKey in data.typeLovelyImages) {
           const colorMap = data.typeLovelyImages[typeKey];
           for (const colorKey in colorMap) {
             const imgs = colorMap[colorKey];
-            if (imgs && imgs.length > 0 && !CATALOG.colors[colorKey]) {
-              CATALOG.colors[colorKey] = imgs[0]; // 找到這個腳色的第一張圖存起來
+            if (imgs && imgs.length > 0) {
+              if(!CATALOG.colors[colorKey]) CATALOG.colors[colorKey] = [];
+              CATALOG.colors[colorKey].push(...imgs);
             }
           }
         }
       }
     }
 
-    // === 2. 抽獎流程 ===
     drawBtn.addEventListener('click', startProcess);
     codeInput.addEventListener('keypress', (e) => { if(e.key==='Enter') startProcess(); });
+
+    // === 新增：重置遊戲 (不會重新整理網頁，所以圖片不用重抓) ===
+    function resetGame() {
+      // 隱藏結果視窗
+      resultCard.style.display = 'none';
+      overlay.style.display = 'none';
+      
+      // 隱藏拉霸機
+      slotArea.style.display = 'none';
+      
+      // 顯示首頁
+      startScreen.style.display = 'block';
+      
+      // 清空輸入框並聚焦
+      codeInput.value = '';
+      msgBox.textContent = '';
+      
+      // 重置按鈕狀態
+      drawBtn.disabled = false;
+      drawBtn.textContent = '開始抽獎';
+    }
 
     function startProcess() {
       const code = codeInput.value.trim().toUpperCase();
       if(!code) return showMsg('請輸入序號', 'error');
 
-      codeInput.blur(); // 收起手機鍵盤
+      codeInput.blur();
       drawBtn.disabled = true;
       drawBtn.textContent = '驗證序號中...';
       showMsg('', 'normal');
@@ -372,7 +424,6 @@
         if(data.ok) {
           startScreen.style.display = 'none';
           slotArea.style.display = 'block';
-          // 自動捲動到拉霸機 (手機優化)
           setTimeout(() => slotArea.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
           
           runSlotAnimation(data);
@@ -389,116 +440,79 @@
       });
     }
 
-    // === 3. 動畫主控台 ===
     async function runSlotAnimation(data) {
-      // 準備階段 1 的隨機池 (Type)
-      // 如果 Catalog 有資料就用 Catalog 的 key，沒有就用預設文字
+      const pattern = WIN_PATTERNS[Math.floor(Math.random() * WIN_PATTERNS.length)];
+      winPath.setAttribute('d', pattern.svg);
+      winPath.classList.remove('show'); 
+
       const typeKeys = Object.keys(CATALOG.types).length > 0 ? Object.keys(CATALOG.types) : DEFAULT_TYPES;
       
-      // 階段 1: 抽種類 (Type)
       machineStatus.textContent = '✨ 抽選種類中... ✨';
-      // 注意：這裡 targetImg 傳入 null 代表讓 spinLogic 自己去 CATALOG 找 data.type 的圖
-      await spinAllReels(typeKeys, data.type, 'TYPE');
+      await spinAllReels(typeKeys, data.type, 'TYPE', pattern);
 
-      await wait(1000); // 停頓 1 秒
+      winPath.classList.add('show');
+      await wait(1000);
+      winPath.classList.remove('show');
 
-      // 準備階段 2 的隨機池 (Color/Lovelys)
       const colorKeys = Object.keys(CATALOG.colors).length > 0 ? Object.keys(CATALOG.colors) : DEFAULT_LOVELYS;
 
-      // 階段 2: 抽 Lovelys (Color)
       machineStatus.textContent = '💖 召喚 LOVELYS... 💖';
       machineStatus.style.color = '#ffeb3b';
-      await spinAllReels(colorKeys, data.color, 'COLOR');
+      
+      const pattern2 = WIN_PATTERNS[Math.floor(Math.random() * WIN_PATTERNS.length)];
+      winPath.setAttribute('d', pattern2.svg);
+      
+      await spinAllReels(colorKeys, data.color, 'COLOR', pattern2);
 
+      winPath.classList.add('show');
       await wait(800);
+      
       showFinalResult(data);
     }
 
-    // 啟動三軸轉動 (控制轉速與停下順序)
-    function spinAllReels(poolKeys, targetText, mode) {
+    function spinAllReels(poolKeys, targetText, mode, pattern) {
       return new Promise(resolve => {
         const reels = [
           document.getElementById('reel-1'),
           document.getElementById('reel-2'),
           document.getElementById('reel-3')
         ];
-
-        // 這裡設定時間：第一條 3秒，第二條 4秒，第三條 5秒 (慢慢停)
         const durations = [3000, 4500, 6000];
-
-        // 取得單格高度 (CSS變數) -> 轉成數字
         const style = getComputedStyle(document.documentElement);
         const itemHeight = parseInt(style.getPropertyValue('--item-height')) || 100;
 
-        // 分別啟動
-        spinOneReel(reels[0], poolKeys, targetText, mode, durations[0], itemHeight);
-        spinOneReel(reels[1], poolKeys, targetText, mode, durations[1], itemHeight);
-        
-        // 第三條轉完才算 Promise 結束
-        spinOneReel(reels[2], poolKeys, targetText, mode, durations[2], itemHeight, resolve);
+        spinOneReel(reels[0], poolKeys, targetText, mode, durations[0], itemHeight, pattern.rows[0]);
+        spinOneReel(reels[1], poolKeys, targetText, mode, durations[1], itemHeight, pattern.rows[1]);
+        spinOneReel(reels[2], poolKeys, targetText, mode, durations[2], itemHeight, pattern.rows[2], resolve);
       });
     }
 
-    /**
-     * 單軸轉動邏輯
-     * @param {HTMLElement} element - 捲軸 DOM
-     * @param {Array} pool - 隨機池 (Keys)
-     * @param {String} target - 目標 Key
-     * @param {String} mode - 'TYPE' 或 'COLOR' (用來決定去哪找圖)
-     * @param {Number} duration - 動畫時間(ms)
-     * @param {Number} itemHeight - 單格高度(px)
-     * @param {Function} callback - 結束回呼
-     */
-    function spinOneReel(element, pool, target, mode, duration, itemHeight, callback) {
+    function spinOneReel(element, pool, target, mode, duration, itemHeight, targetRowIndex, callback) {
       let html = '';
-      // 產生隨機項目 (數量要夠多才有轉動感，例如 40 個)
       const count = 40; 
-      
+
       for(let i=0; i<count; i++) {
         const randomKey = pool[Math.floor(Math.random() * pool.length)];
-        const imgUrl = getImgUrl(mode, randomKey);
+        const imgUrl = getRandomImg(mode, randomKey);
         html += createSlotItemHtml(randomKey, imgUrl);
       }
 
-      // === 關鍵修正：3x3 顯示邏輯 ===
-      // 當我們停下來時，目標必須在「中間那一格」。
-      // 結構應該是： [隨機...] + [上一個] + [目標(中)] + [下一個]
-      // 這樣停在 [目標] 的位置時，上下才會有東西，不會空白。
-      
-      const targetImg = getImgUrl(mode, target);
-      
-      // 添加目標前的裝飾 (位於上方)
       const prevKey = pool[Math.floor(Math.random() * pool.length)];
-      html += createSlotItemHtml(prevKey, getImgUrl(mode, prevKey));
+      html += createSlotItemHtml(prevKey, getRandomImg(mode, prevKey));
 
-      // ★ 目標 (這格會停在正中間) ★
-      html += createSlotItemHtml(target, targetImg);
+      html += createSlotItemHtml(target, getRandomImg(mode, target));
 
-      // 添加目標後的裝飾 (位於下方)
       const nextKey = pool[Math.floor(Math.random() * pool.length)];
-      html += createSlotItemHtml(nextKey, getImgUrl(mode, nextKey));
+      html += createSlotItemHtml(nextKey, getRandomImg(mode, nextKey));
 
-      // 填入 HTML
       element.innerHTML = html;
       
-      // 重置位置
       element.style.transition = 'none';
       element.style.transform = 'translateY(0)';
-      element.offsetHeight; // 強制重繪
+      element.offsetHeight; 
 
-      // 計算位移
-      // 我們要讓 [目標] 停在視窗的中間。
-      // 視窗高度 = 3 * itemHeight。 中間位置是 top: itemHeight。
-      // 現在總共有 count + 3 個項目。
-      // 目標是倒數第 2 個 (索引 count + 1)。
-      // 目標的 top 位置是 (count + 1) * itemHeight。
-      // 我們要移動讓目標的 top 變成 itemHeight (相對於視窗)。
-      // 所以 translateY = - (目標原始top - 視窗目標top)
-      // translateY = - ( (count+1)*h - 1*h ) = - (count * h)
-      
-      const finalY = -1 * (count * itemHeight);
+      const finalY = (targetRowIndex * itemHeight) - ((count + 1) * itemHeight);
 
-      // 啟動 CSS 動畫 (cubic-bezier 讓結尾有煞車感)
       element.style.transition = `transform ${duration}ms cubic-bezier(0.15, 0.9, 0.30, 1)`;
       element.style.transform = `translateY(${finalY}px)`;
 
@@ -507,26 +521,25 @@
       }
     }
 
-    // 輔助：產生單格 HTML
+    function getRandomImg(mode, key) {
+      let arr = [];
+      if (mode === 'TYPE') arr = CATALOG.types[key];
+      else if (mode === 'COLOR') arr = CATALOG.colors[key];
+
+      if (arr && arr.length > 0) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+      return '';
+    }
+
     function createSlotItemHtml(text, imgUrl) {
       let content = '';
       if (imgUrl) {
         content = `<img src="${imgUrl}" class="slot-img" alt="${text}"><div class="slot-text">${text}</div>`;
       } else {
-        // 沒有圖就顯示文字大一點
         content = `<div style="font-size:1.5rem; color:#d65db1;">${text}</div>`;
       }
       return `<div class="slot-item">${content}</div>`;
-    }
-
-    // 輔助：根據模式與Key找圖片
-    function getImgUrl(mode, key) {
-      if (mode === 'TYPE') {
-        return CATALOG.types[key] || '';
-      } else if (mode === 'COLOR') {
-        return CATALOG.colors[key] || '';
-      }
-      return '';
     }
 
     function showFinalResult(data) {
