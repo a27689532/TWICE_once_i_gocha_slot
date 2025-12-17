@@ -14,7 +14,6 @@
       --accent: #d65db1;
       --bg: #fff0f5;
       
-      /* === 尺寸設定 === */
       --item-height: 120px; 
       --slot-view-height: calc(var(--item-height) * 3);
     }
@@ -41,7 +40,6 @@
       position: relative;
     }
 
-    /* 輸入區 */
     #start-screen {
       background: white;
       padding: 40px 25px;
@@ -246,10 +244,9 @@
       border: 3px solid var(--primary);
       text-align: center;
       animation: slideUp 0.5s ease-out;
-      overflow: hidden; /* 避免截圖時邊緣問題 */
+      overflow: hidden;
     }
 
-    /* 新增：提醒文字樣式 */
     .screenshot-alert {
       color: #c2185b;
       font-weight: bold;
@@ -263,12 +260,12 @@
       line-height: 1.6;
     }
 
-    /* 截圖按鈕樣式 */
+    /* 截圖按鈕 */
     .btn-screenshot {
       background: #4caf50;
       color: white;
       border: none;
-      padding: 12px 30px;
+      padding: 12px 20px;
       font-size: 1.1rem;
       border-radius: 50px;
       cursor: pointer;
@@ -294,30 +291,49 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
+    /* === 圖片生成彈窗 (iOS專用) === */
+    #img-modal {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      backdrop-filter: blur(5px);
+    }
+    #img-modal img {
+      max-width: 90%;
+      max-height: 80vh;
+      border: 2px solid white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    #img-modal p {
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 50px;
+    }
+    .close-modal {
+      position: absolute; top: 20px; right: 20px;
+      color: white; font-size: 30px; cursor: pointer;
+      background: none; border: none;
+    }
+
     .status-msg { margin-top: 15px; color: var(--primary); font-weight: bold; font-size: 1rem; }
     .error { color: #e53935; }
 
     @media screen and (max-width: 600px) {
-      :root { 
-        --item-height: 120px; 
-      }
-      
+      :root { --item-height: 120px; }
       h1 { font-size: 1.6rem; }
-
       .container { width: 95%; }
-
       .slot-img { height: 70%; }
-      
-      .slot-text {
-        font-size: 0.85rem; 
-        margin-top: 8px;
-        line-height: 1.2;
-      }
-
-      .slot-container {
-        border-width: 5px;
-        gap: 4px;
-      }
+      .slot-text { font-size: 0.85rem; margin-top: 8px; line-height: 1.2; }
+      .slot-container { border-width: 5px; gap: 4px; }
     }
   </style>
 </head>
@@ -327,32 +343,24 @@
     
     <div id="start-screen">
       <h1>TWICE ❤️ ONCE I GOCHA</h1>
-      
       <a href="https://www.threads.com/@a27689532/post/DRlXgWvkiG9?xmt=AQF0m11o5sqKyTq1bZQteVidEod1mjd1eYCTce4RUaumCg" 
-         target="_blank" 
-         class="promo-link">
+         target="_blank" class="promo-link">
          🌟 台北大巨蛋週五場線上應援文章 🌟
       </a>
-      
       <div id="stock-area">載入庫存中...</div>
-
       <p style="color:#888; font-size:1rem; margin-top:15px;">輸入序號開始轉動幸運</p>
-      
       <input type="text" id="code-input" placeholder="請輸入序號" maxlength="8" autocomplete="off">
       <button id="draw-btn" class="btn-draw">開始抽獎</button>
-      
       <div id="msg-box" class="status-msg"></div>
       <div id="loading-hint" style="display:none; color:#aaa; font-size:0.8rem; margin-top:10px;">正在下載圖片素材...</div>
     </div>
 
     <div id="slot-machine-area">
       <div id="machine-status" class="machine-status">準備啟動...</div>
-      
       <div class="slot-container">
         <svg class="win-line-svg" viewBox="0 0 300 300" preserveAspectRatio="none">
            <path id="win-path" class="win-path" d="" />
         </svg>
-
         <div class="reel"><div class="reel-strip" id="reel-1"></div></div>
         <div class="reel"><div class="reel-strip" id="reel-2"></div></div>
         <div class="reel"><div class="reel-strip" id="reel-3"></div></div>
@@ -360,9 +368,9 @@
     </div>
 
     <div id="inline-result-area">
-      <div id="capture-target" style="background:white; padding:10px; border-radius:15px;">
+      <div id="capture-target" style="background:white; padding:15px; border-radius:15px; border: 2px solid #ff6f91;">
         <h2 style="color:var(--secondary); margin:0 0 15px 0; font-size:1.8rem;">🎉 CONGRATULATIONS!</h2>
-        <img id="final-img" class="final-prize-img" src="" alt="Prize" crossorigin="anonymous">
+        <img id="final-img" class="final-prize-img" src="" alt="Prize">
         
         <h3 id="final-name" style="color:var(--accent); margin:10px 0; font-size:1.6rem;"></h3>
         <p id="final-detail" style="color:#666; margin:5px 0; font-size:1.2rem; font-weight:bold;"></p>
@@ -374,23 +382,27 @@
         
         <br>
         <div class="screenshot-alert">
-          ⚠️ 請記得截圖 ⚠️<br>
+          ⚠️ 請務必截圖 ⚠️<br>
           週五場次領取時需出示此畫面
         </div>
       </div>
-      <br>
-      <button onclick="saveScreenshot()" class="btn-screenshot">📸 儲存中獎截圖</button>
-      
-      <button onclick="resetGame()" class="btn-draw" style="margin-top:20px; padding:15px 50px; background:var(--accent);">再玩一次</button>
+
+      <button onclick="generateImageForSave()" class="btn-screenshot">📸 產生圖片 (長按儲存)</button>
+      <button onclick="resetGame()" class="btn-draw" style="margin-top:30px; padding:15px 50px; background:var(--accent);">再玩一次</button>
     </div>
 
+  </div>
+
+  <div id="img-modal">
+    <button class="close-modal" onclick="closeModal()">×</button>
+    <p>👇 請長按下方圖片加入照片 👇</p>
+    <div id="generated-img-container"></div>
   </div>
 
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
     let CATALOG = { types: {}, relations: {}, stocks: {} };
-    
     const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
     const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
 
@@ -412,13 +424,14 @@
     const winPath = document.getElementById('win-path');
     const stockArea = document.getElementById('stock-area');
     const inlineResultArea = document.getElementById('inline-result-area');
+    const imgModal = document.getElementById('img-modal');
+    const genImgContainer = document.getElementById('generated-img-container');
 
     window.onload = function() { fetchCatalog(); };
 
     function fetchCatalog() {
       loadingHint.style.display = 'block';
       drawBtn.disabled = true;
-
       fetch(API_URL + '?action=catalog')
         .then(res => res.json())
         .then(data => {
@@ -445,24 +458,15 @@
           if (imgs && imgs.length > 0) CATALOG.types[type] = imgs;
         }
       }
-      if (data.typeLovelyImages) {
-        CATALOG.relations = data.typeLovelyImages;
-      }
-      if (data.typeStocks) {
-        CATALOG.stocks = data.typeStocks;
-      }
+      if (data.typeLovelyImages) CATALOG.relations = data.typeLovelyImages;
+      if (data.typeStocks) CATALOG.stocks = data.typeStocks;
     }
 
     function renderStocks() {
       stockArea.innerHTML = '';
       const stocks = CATALOG.stocks;
       const total = Object.values(stocks).reduce((sum, val) => sum + val, 0);
-
-      if (total === 0) {
-        stockArea.textContent = '目前已無庫存';
-        return;
-      }
-      
+      if (total === 0) { stockArea.textContent = '目前已無庫存'; return; }
       for (const [type, count] of Object.entries(stocks)) {
         if (count > 0) {
           const probability = ((count / total) * 100).toFixed(1);
@@ -488,44 +492,50 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // === 新增：截圖功能 ===
-    function saveScreenshot() {
+    // === 新增：產生圖片並顯示在 Modal (解決 iOS 無法直接下載問題) ===
+    function generateImageForSave() {
       const target = document.getElementById('capture-target');
-      
-      // 為了避免按鈕文字改變太快，先鎖定
       const btn = document.querySelector('.btn-screenshot');
       const originalText = btn.textContent;
       btn.textContent = '📸 處理中...';
       btn.disabled = true;
 
+      // 使用 useCORS: true 嘗試抓圖，若有跨域問題可能會失敗
+      // 但我們優先依賴瀏覽器快取
       html2canvas(target, {
-        scale: 2, // 提高解析度
-        useCORS: true, // 嘗試處理跨域圖片
+        scale: 2,
+        useCORS: true, 
+        allowTaint: true, // 允許跨域圖片 (雖然可能導致 tainted canvas，但在 display mode 沒差)
         backgroundColor: '#ffffff'
       }).then(canvas => {
-        // 建立下載連結
-        const link = document.createElement('a');
-        link.download = 'TWICE_Lottery_Win.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        
-        btn.textContent = '✅ 已儲存';
-        setTimeout(() => {
+        try {
+          const imgUrl = canvas.toDataURL("image/png");
+          // 顯示 Modal
+          genImgContainer.innerHTML = `<img src="${imgUrl}" alt="Result Screenshot">`;
+          imgModal.style.display = 'flex';
+          
           btn.textContent = originalText;
           btn.disabled = false;
-        }, 2000);
+        } catch (e) {
+          alert('圖片生成失敗 (安全性限制)，請直接使用手機截圖功能 (電源鍵+音量鍵) 保存畫面！');
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
       }).catch(err => {
         console.error(err);
-        alert('自動截圖失敗，請您手動使用手機截圖功能保存畫面！');
+        alert('截圖生成失敗，請手動截圖！');
         btn.textContent = originalText;
         btn.disabled = false;
       });
     }
 
+    function closeModal() {
+      imgModal.style.display = 'none';
+    }
+
     function startProcess() {
       const code = codeInput.value.trim().toUpperCase();
       if(!code) return showMsg('請輸入序號', 'error');
-
       inlineResultArea.style.display = 'none';
       codeInput.blur();
       drawBtn.disabled = true;
@@ -542,7 +552,6 @@
           startScreen.style.display = 'none';
           slotArea.style.display = 'block';
           setTimeout(() => slotArea.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-          
           runSlotAnimation(data);
         } else {
           showMsg(data.message, 'error');
@@ -568,8 +577,7 @@
       await spinAllReels(typeKeys, data.type, 'TYPE', pattern, null);
 
       winPath.classList.add('show');
-      
-      await wait(1500);
+      await wait(1500); 
       winPath.classList.remove('show'); 
       await wait(600);
       
@@ -589,7 +597,6 @@
 
       winPath.classList.add('show');
       await wait(800);
-      
       showFinalResult(data);
     }
 
@@ -603,7 +610,6 @@
         const durations = [3000, 4500, 6000];
         const style = getComputedStyle(document.documentElement);
         const itemHeight = parseInt(style.getPropertyValue('--item-height')) || 100;
-
         spinOneReel(reels[0], poolKeys, targetText, mode, durations[0], itemHeight, pattern.rows[0], null, contextType);
         spinOneReel(reels[1], poolKeys, targetText, mode, durations[1], itemHeight, pattern.rows[1], null, contextType);
         spinOneReel(reels[2], poolKeys, targetText, mode, durations[2], itemHeight, pattern.rows[2], resolve, contextType);
@@ -613,37 +619,26 @@
     function spinOneReel(element, pool, target, mode, duration, itemHeight, targetRowIndex, callback, contextType) {
       let html = '';
       const count = 40; 
-
       for(let i=0; i<count; i++) {
         const randomKey = pool[Math.floor(Math.random() * pool.length)];
         const imgUrl = getRandomImg(mode, randomKey, contextType);
         html += createSlotItemHtml(randomKey, imgUrl);
       }
-
       const prevKey = pool[Math.floor(Math.random() * pool.length)];
       html += createSlotItemHtml(prevKey, getRandomImg(mode, prevKey, contextType));
-
       html += createSlotItemHtml(target, getRandomImg(mode, target, contextType));
-
       for(let k=0; k<3; k++) {
         const nextKey = pool[Math.floor(Math.random() * pool.length)];
         html += createSlotItemHtml(nextKey, getRandomImg(mode, nextKey, contextType));
       }
-
       element.innerHTML = html;
-      
       element.style.transition = 'none';
       element.style.transform = 'translateY(0)';
       element.offsetHeight; 
-
       const finalY = (targetRowIndex * itemHeight) - ((count + 1) * itemHeight);
-
       element.style.transition = `transform ${duration}ms cubic-bezier(0.15, 0.9, 0.30, 1)`;
       element.style.transform = `translateY(${finalY}px)`;
-
-      if(callback) {
-        setTimeout(callback, duration);
-      }
+      if(callback) { setTimeout(callback, duration); }
     }
 
     function getRandomImg(mode, key, contextType) {
@@ -676,8 +671,18 @@
       document.getElementById('final-code').textContent = data.prize_key;
 
       const img = document.getElementById('final-img');
-      if(data.image_url) {
-        img.src = data.image_url;
+      // ★★★ 關鍵修正：優先使用 Catalog 裡的圖片網址，確保一定能顯示 ★★★
+      let safeImgUrl = '';
+      // 嘗試從 Catalog 找一張該種類+該角色的圖
+      if (CATALOG.relations[data.type] && CATALOG.relations[data.type][data.color]) {
+         const arr = CATALOG.relations[data.type][data.color];
+         if (arr.length > 0) safeImgUrl = arr[0];
+      }
+      // 如果 Catalog 沒找到，才用 data.image_url
+      if (!safeImgUrl) safeImgUrl = data.image_url;
+
+      if(safeImgUrl) {
+        img.src = safeImgUrl;
         img.style.display = 'block';
       } else {
         img.style.display = 'none';
@@ -688,11 +693,8 @@
         if (CATALOG.stocks[data.type] < 0) CATALOG.stocks[data.type] = 0;
         renderStocks(); 
       }
-
       inlineResultArea.style.display = 'block';
-      setTimeout(() => {
-        inlineResultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      setTimeout(() => { inlineResultArea.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
     }
 
     function showMsg(text, type) {
