@@ -2,9 +2,8 @@
 <html lang="zh-TW">
 <head>
   <base target="_top">
-  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Lovelys 幸運轉蛋機</title>
+  <title>LOVELYS 豪華拉霸機</title>
   <style>
     :root {
       --primary: #ff6f91;
@@ -12,34 +11,35 @@
       --accent: #d65db1;
       --bg: #fff0f5;
       
-      /* 電腦版預設高度 */
-      --slot-height: 180px; 
-      --font-size-base: 1.2rem;
+      /* === 尺寸設定 === */
+      /* 單格高度 (圖片高度) */
+      --item-height: 100px; 
+      /* 顯示區域高度 = 單格 x 3 (3x3 佈局) */
+      --slot-view-height: calc(var(--item-height) * 3);
     }
 
     body {
-      font-family: '微軟正黑體', 'Segoe UI', sans-serif;
+      font-family: '微軟正黑體', sans-serif;
       background-color: var(--bg);
       background-image: radial-gradient(var(--secondary) 1px, transparent 1px);
       background-size: 20px 20px;
       display: flex;
       justify-content: center;
-      align-items: center; /* 垂直置中 */
+      align-items: center;
       min-height: 100vh;
       margin: 0;
-      padding: 15px; /* 手機版邊距 */
+      padding: 10px;
       overflow-x: hidden;
-      box-sizing: border-box;
     }
 
     .container {
       width: 100%;
-      max-width: 500px; /* 限制最大寬度 */
+      max-width: 500px;
       text-align: center;
       position: relative;
     }
 
-    /* === 1. 輸入介面 === */
+    /* 輸入區 */
     #start-screen {
       background: white;
       padding: 30px 20px;
@@ -48,14 +48,8 @@
       border: 3px solid white;
     }
 
-    h1 {
-      color: var(--accent);
-      margin-top: 0;
-      font-size: 1.8rem;
-    }
-
-    p.desc { color: #888; font-size: 0.95rem; margin-bottom: 20px; }
-
+    h1 { color: var(--accent); margin-top: 0; font-size: 1.8rem; text-transform: uppercase; }
+    
     input[type="text"] {
       width: 100%;
       box-sizing: border-box;
@@ -69,11 +63,7 @@
       color: var(--accent);
       outline: none;
       margin-bottom: 20px;
-      transition: 0.3s;
-      /* 避免手機輸入時畫面放大 */
-      touch-action: manipulation; 
     }
-
     input:focus { border-color: var(--primary); }
 
     .btn-draw {
@@ -87,168 +77,148 @@
       cursor: pointer;
       font-weight: bold;
       box-shadow: 0 5px 15px rgba(255, 111, 145, 0.4);
-      transition: transform 0.2s;
-      /* 避免手機點擊反白 */
-      -webkit-tap-highlight-color: transparent; 
+      transition: 0.2s;
     }
-    .btn-draw:active { transform: scale(0.96); }
-    .btn-draw:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-draw:disabled { background: #ccc; cursor: wait; transform: none; box-shadow: none; }
 
-    /* === 2. 拉霸機介面 === */
+    /* === 拉霸機區域 (3x3) === */
     #slot-machine-area {
       display: none;
       background: var(--accent);
       padding: 15px;
       border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
     }
 
-    .machine-title {
+    .machine-status {
       color: white;
-      font-size: 1.1rem;
-      margin-bottom: 10px;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
       font-weight: bold;
-      min-height: 1.5em; /* 預留高度避免跳動 */
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
     .slot-container {
       display: flex;
       justify-content: space-between;
-      gap: 8px; /* 滾輪間距 */
-      background: #333;
-      padding: 8px;
+      gap: 5px;
+      background: #222;
+      padding: 5px;
       border-radius: 10px;
-      border: 4px solid #fec;
-      
-      /* ★ 關鍵：高度改用變數，方便手機版調整 ★ */
-      height: var(--slot-height); 
+      border: 5px solid #ffccbc;
+      height: var(--slot-view-height); /* 300px on desktop */
       overflow: hidden;
       position: relative;
     }
 
-    /* 遮罩陰影 (立體感) */
-    .slot-container::before, .slot-container::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0;
-      height: 20%; /* 相對高度 */
-      z-index: 2;
-      pointer-events: none;
-    }
-    .slot-container::before { top: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); }
-    .slot-container::after { bottom: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); }
-
-    /* 中心對準線 (讓使用者知道要看中間) */
+    /* 3x3 中間的中獎線 (紅線) */
     .win-line {
       position: absolute;
-      top: 50%;
-      left: -5px;
-      right: -5px;
+      top: 50%; left: -10px; right: -10px;
       height: 4px;
-      background: rgba(255, 0, 0, 0.5);
-      z-index: 3;
+      background: rgba(255, 0, 0, 0.6);
+      z-index: 10;
       transform: translateY(-50%);
-      box-shadow: 0 0 5px red;
+      box-shadow: 0 0 10px red;
       pointer-events: none;
-      display: none; /* 如果覺得畫面太亂可以隱藏 */
+    }
+    /* 玻璃反光質感 */
+    .slot-container::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 30%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
+      pointer-events: none;
+      z-index: 5;
     }
 
     .reel {
       background: white;
-      flex: 1; /* 讓三個滾輪平均分配寬度 */
-      border-radius: 5px;
+      flex: 1;
       position: relative;
       overflow: hidden;
+      border-radius: 4px;
     }
 
     .reel-strip {
       position: absolute;
       top: 0; left: 0; width: 100%;
-      /* JS 會控制 transform */
-      will-change: transform; /* 手機效能優化 */
+      /* 初始位置稍微調整，確保對齊 */
+      will-change: transform;
     }
 
     .slot-item {
-      /* ★ 關鍵：每一個項目高度必須等於容器高度，確保一次顯示一個 ★ */
-      height: var(--slot-height); 
+      height: var(--item-height); /* 固定高度 */
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      
-      /* 字體與排版 */
-      font-size: var(--font-size-base);
-      font-weight: bold;
-      color: #333;
-      padding: 5px;
       box-sizing: border-box;
       border-bottom: 1px solid #eee;
-      word-wrap: break-word;
-      line-height: 1.3;
+      padding: 5px;
+      overflow: hidden;
     }
 
-    /* === 3. 結果卡片 === */
+    /* 拉霸機內的圖片 */
+    .slot-img {
+      width: 100%;
+      height: 80%; /* 圖片佔格子的 80% */
+      object-fit: contain;
+    }
+    /* 拉霸機內的文字 */
+    .slot-text {
+      font-size: 0.8rem;
+      color: #333;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* === 結果彈窗 === */
     #result-card {
       display: none;
-      background: white;
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      position: fixed; /* 改為 fixed 確保在手機最上層 */
-      top: 50%; left: 50%;
+      position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 85%;
-      max-width: 400px;
+      background: white;
+      padding: 25px;
+      width: 85%; max-width: 400px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       z-index: 999;
       animation: popIn 0.5s cubic-bezier(0.17, 0.67, 0.43, 1.45);
+      text-align: center;
     }
-    /* 背景遮罩 */
     #overlay {
       display: none;
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       z-index: 998;
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
     }
-
-    .prize-img {
+    
+    .final-prize-img {
       width: 100%;
-      height: auto;
       max-height: 250px;
       object-fit: contain;
-      border-radius: 10px;
       border: 3px solid var(--primary);
-      background: #fff;
+      border-radius: 10px;
       margin-bottom: 10px;
     }
 
-    .status-msg { margin-top: 15px; font-weight: bold; min-height: 20px; color: var(--primary); font-size: 0.9rem;}
+    .status-msg { margin-top: 10px; color: var(--primary); font-weight: bold; font-size: 0.9rem; }
     .error { color: #e53935; }
 
-    /* === 📱 手機版專用調整 (Media Queries) === */
+    /* === 手機版調整 === */
     @media screen and (max-width: 600px) {
       :root {
-        /* 手機版縮小高度與字體 */
-        --slot-height: 120px; 
-        --font-size-base: 1rem;
+        /* 手機版縮小一點，避免太長 */
+        --item-height: 80px; 
       }
-      
-      h1 { font-size: 1.5rem; }
-      
-      .container { padding: 0 10px; }
-
-      .slot-container {
-        gap: 5px;
-        padding: 5px;
-        border-width: 3px;
-      }
-      
-      /* 在極窄螢幕(如 Fold)強制換行或縮小字體 */
-      .slot-item {
-        font-size: 0.9rem; 
-      }
+      .slot-text { font-size: 0.7rem; }
     }
 
-    /* 動畫 Keyframes */
     @keyframes popIn {
       0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -262,19 +232,20 @@
   <div class="container">
     
     <div id="start-screen">
-      <h1>🎁 Lovelys 抽獎</h1>
-      <p class="desc">請輸入序號開啟幸運之門</p>
+      <h1>LOVELYS 抽獎</h1>
+      <p style="color:#888; font-size:0.9rem;">輸入序號開始轉動幸運</p>
       
-      <input type="text" id="code-input" placeholder="輸入序號" maxlength="8" autocomplete="off">
-      
+      <input type="text" id="code-input" placeholder="請輸入序號" maxlength="8" autocomplete="off">
       <button id="draw-btn" class="btn-draw">開始抽獎</button>
+      
       <div id="msg-box" class="status-msg"></div>
+      <div id="loading-hint" style="display:none; color:#aaa; font-size:0.8rem; margin-top:5px;">正在下載圖片素材...</div>
     </div>
 
     <div id="slot-machine-area">
-      <div id="machine-status" class="machine-title">準備啟動...</div>
+      <div id="machine-status" class="machine-status">準備啟動...</div>
       
-      <div class="slot-container" id="slot-container-el">
+      <div class="slot-container">
         <div class="win-line"></div>
         
         <div class="reel"><div class="reel-strip" id="reel-1"></div></div>
@@ -284,28 +255,34 @@
     </div>
 
     <div id="result-card">
-      <h2 style="color:var(--secondary); margin:0 0 10px 0; font-size:1.5rem;">🎉 中獎啦！</h2>
-      <img id="final-img" class="prize-img" src="" alt="獎品圖">
-      <h3 id="final-name" style="color:var(--accent); margin:10px 0;">獎品名稱</h3>
-      <p id="final-detail" style="color:#666; font-size:0.95rem; margin:5px 0;"></p>
-      <div style="background:#eee; padding:5px; border-radius:5px; margin-top:10px; display:inline-block;">
-        <span style="font-size:0.8rem; color:#888;">序號: </span>
-        <span id="final-code" style="font-family:monospace; font-weight:bold; color:#555;"></span>
+      <h2 style="color:var(--secondary); margin:0 0 10px 0;">🎉 CONGRATULATIONS!</h2>
+      <img id="final-img" class="final-prize-img" src="" alt="Prize">
+      <h3 id="final-name" style="color:var(--accent); margin:5px 0;"></h3>
+      <p id="final-detail" style="color:#666; margin:5px 0;"></p>
+      <div style="background:#eee; padding:5px; border-radius:5px; display:inline-block; margin-top:10px;">
+        <span style="font-size:0.8rem;">序號: </span>
+        <strong id="final-code" style="color:#555;"></strong>
       </div>
-      <button onclick="location.reload()" class="btn-draw" style="margin-top:20px; font-size:1rem; padding:12px;">再玩一次</button>
+      <br>
+      <button onclick="location.reload()" class="btn-draw" style="margin-top:20px; padding:10px 30px;">再玩一次</button>
     </div>
 
   </div>
 
   <script>
-    // ★★★ 請替換成你的 GAS 網址 ★★★
+    // ★★★ 請替換成您的 GAS 網址 ★★★
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
-    // 資料池
-    const POOL_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
-    const POOL_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
+    // 全域變數：用來儲存從後端抓下來的圖片對照表
+    let CATALOG = {
+      types: {},   // 種類 -> 代表圖片 URL
+      colors: {}   // 顏色(LOVELYS) -> 代表圖片 URL
+    };
+    
+    // 預設填充用 (萬一圖片沒載入)
+    const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
+    const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENGVELY', 'DAHYUN', 'NAYEON', 'JEONGYEON'];
 
-    // DOM 元素
     const drawBtn = document.getElementById('draw-btn');
     const codeInput = document.getElementById('code-input');
     const msgBox = document.getElementById('msg-box');
@@ -314,30 +291,77 @@
     const machineStatus = document.getElementById('machine-status');
     const resultCard = document.getElementById('result-card');
     const overlay = document.getElementById('overlay');
-    const slotContainer = document.getElementById('slot-container-el');
+    const loadingHint = document.getElementById('loading-hint');
 
-    // 啟動時偵測裝置 (可選)
-    detectDevice();
+    // === 1. 初始化：網頁載入時先去抓 Catalog (為了圖片) ===
+    window.onload = function() {
+      fetchCatalog();
+    };
 
+    function fetchCatalog() {
+      loadingHint.style.display = 'block';
+      drawBtn.disabled = true; // 尚未載入完成前不能按
+
+      fetch(API_URL + '?action=catalog')
+        .then(res => res.json())
+        .then(data => {
+          if(data.ok) {
+            processCatalog(data);
+            loadingHint.style.display = 'none';
+            drawBtn.disabled = false;
+            console.log('圖片素材載入完成', CATALOG);
+          } else {
+            console.warn('Catalog load failed', data);
+            loadingHint.textContent = '圖片載入失敗，將使用純文字模式';
+            drawBtn.disabled = false;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          loadingHint.textContent = '連線異常';
+          drawBtn.disabled = false;
+        });
+    }
+
+    // 處理後端回傳的資料，建立「種類 -> 圖片」與「Lovelys -> 圖片」的索引
+    function processCatalog(data) {
+      // 1. 處理 Types (種類)
+      if (data.typeImages) {
+        for (const [type, imgs] of Object.entries(data.typeImages)) {
+          if (imgs && imgs.length > 0) {
+            CATALOG.types[type] = imgs[0]; // 每個種類只取第一張當代表圖
+          }
+        }
+      }
+
+      // 2. 處理 Colors (Lovelys)
+      // 資料結構是 typeLovelyImages[type][color] = [imgs...]
+      // 我們要把它攤平變成 colors[color] = img
+      if (data.typeLovelyImages) {
+        for (const typeKey in data.typeLovelyImages) {
+          const colorMap = data.typeLovelyImages[typeKey];
+          for (const colorKey in colorMap) {
+            const imgs = colorMap[colorKey];
+            if (imgs && imgs.length > 0 && !CATALOG.colors[colorKey]) {
+              CATALOG.colors[colorKey] = imgs[0]; // 找到這個腳色的第一張圖存起來
+            }
+          }
+        }
+      }
+    }
+
+    // === 2. 抽獎流程 ===
     drawBtn.addEventListener('click', startProcess);
     codeInput.addEventListener('keypress', (e) => { if(e.key==='Enter') startProcess(); });
-
-    // 處理虛擬鍵盤彈出問題 (手機版優化)
-    codeInput.addEventListener('focus', () => {
-      // 在部分手機瀏覽器，鍵盤彈出會壓縮畫面，這裡可以做額外處理
-      // 目前 CSS min-height: 100vh 已經能處理大部分狀況
-    });
 
     function startProcess() {
       const code = codeInput.value.trim().toUpperCase();
       if(!code) return showMsg('請輸入序號', 'error');
 
-      // 關閉鍵盤 (手機體驗優化)
-      codeInput.blur();
-
+      codeInput.blur(); // 收起手機鍵盤
       drawBtn.disabled = true;
-      drawBtn.textContent = '連線驗證中...';
-      showMsg('正在讀取資料...', 'normal');
+      drawBtn.textContent = '驗證序號中...';
+      showMsg('', 'normal');
 
       fetch(API_URL, {
         method: 'POST',
@@ -346,12 +370,10 @@
       .then(res => res.json())
       .then(data => {
         if(data.ok) {
-          // 進入動畫
           startScreen.style.display = 'none';
           slotArea.style.display = 'block';
-          
-          // 自動滾動到拉霸機位置 (避免手機畫面跑掉)
-          slotArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // 自動捲動到拉霸機 (手機優化)
+          setTimeout(() => slotArea.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
           
           runSlotAnimation(data);
         } else {
@@ -361,31 +383,39 @@
         }
       })
       .catch(err => {
-        console.error(err);
-        showMsg('網路連線失敗', 'error');
+        showMsg('網路錯誤', 'error');
         drawBtn.disabled = false;
         drawBtn.textContent = '開始抽獎';
       });
     }
 
+    // === 3. 動畫主控台 ===
     async function runSlotAnimation(data) {
-      // 第一階段：抽種類
-      machineStatus.textContent = '✨ 種類抽選中... ✨';
-      machineStatus.style.color = '#fff';
-      await spinAllReels(POOL_TYPES, data.type);
+      // 準備階段 1 的隨機池 (Type)
+      // 如果 Catalog 有資料就用 Catalog 的 key，沒有就用預設文字
+      const typeKeys = Object.keys(CATALOG.types).length > 0 ? Object.keys(CATALOG.types) : DEFAULT_TYPES;
+      
+      // 階段 1: 抽種類 (Type)
+      machineStatus.textContent = '✨ 抽選種類中... ✨';
+      // 注意：這裡 targetImg 傳入 null 代表讓 spinLogic 自己去 CATALOG 找 data.type 的圖
+      await spinAllReels(typeKeys, data.type, 'TYPE');
+
+      await wait(1000); // 停頓 1 秒
+
+      // 準備階段 2 的隨機池 (Color/Lovelys)
+      const colorKeys = Object.keys(CATALOG.colors).length > 0 ? Object.keys(CATALOG.colors) : DEFAULT_LOVELYS;
+
+      // 階段 2: 抽 Lovelys (Color)
+      machineStatus.textContent = '💖 召喚 LOVELYS... 💖';
+      machineStatus.style.color = '#ffeb3b';
+      await spinAllReels(colorKeys, data.color, 'COLOR');
 
       await wait(800);
-
-      // 第二階段：抽角色
-      machineStatus.textContent = '💖 角色召喚中... 💖';
-      machineStatus.style.color = '#ffeb3b'; // 黃色高亮
-      await spinAllReels(POOL_LOVELYS, data.color);
-
-      await wait(600);
       showFinalResult(data);
     }
 
-    function spinAllReels(pool, target) {
+    // 啟動三軸轉動 (控制轉速與停下順序)
+    function spinAllReels(poolKeys, targetText, mode) {
       return new Promise(resolve => {
         const reels = [
           document.getElementById('reel-1'),
@@ -393,47 +423,110 @@
           document.getElementById('reel-3')
         ];
 
-        // 動態獲取當前高度 (這就是手機/電腦自適應的關鍵)
-        // 無論 CSS 怎麼縮放，JS 這裡讀到的都是實際像素值
-        const currentHeight = slotContainer.clientHeight; // 扣除 padding 內部高度
+        // 這裡設定時間：第一條 3秒，第二條 4秒，第三條 5秒 (慢慢停)
+        const durations = [3000, 4500, 6000];
 
-        spinOneReel(reels[0], pool, target, 2000, currentHeight);
-        spinOneReel(reels[1], pool, target, 2500, currentHeight);
-        spinOneReel(reels[2], pool, target, 3000, currentHeight, resolve);
+        // 取得單格高度 (CSS變數) -> 轉成數字
+        const style = getComputedStyle(document.documentElement);
+        const itemHeight = parseInt(style.getPropertyValue('--item-height')) || 100;
+
+        // 分別啟動
+        spinOneReel(reels[0], poolKeys, targetText, mode, durations[0], itemHeight);
+        spinOneReel(reels[1], poolKeys, targetText, mode, durations[1], itemHeight);
+        
+        // 第三條轉完才算 Promise 結束
+        spinOneReel(reels[2], poolKeys, targetText, mode, durations[2], itemHeight, resolve);
       });
     }
 
-    function spinOneReel(element, pool, target, duration, itemHeight, callback) {
+    /**
+     * 單軸轉動邏輯
+     * @param {HTMLElement} element - 捲軸 DOM
+     * @param {Array} pool - 隨機池 (Keys)
+     * @param {String} target - 目標 Key
+     * @param {String} mode - 'TYPE' 或 'COLOR' (用來決定去哪找圖)
+     * @param {Number} duration - 動畫時間(ms)
+     * @param {Number} itemHeight - 單格高度(px)
+     * @param {Function} callback - 結束回呼
+     */
+    function spinOneReel(element, pool, target, mode, duration, itemHeight, callback) {
       let html = '';
-      // 產生 30 個隨機項目
-      for(let i=0; i<30; i++) {
-        const randomItem = pool[Math.floor(Math.random() * pool.length)];
-        html += `<div class="slot-item">${randomItem}</div>`;
+      // 產生隨機項目 (數量要夠多才有轉動感，例如 40 個)
+      const count = 40; 
+      
+      for(let i=0; i<count; i++) {
+        const randomKey = pool[Math.floor(Math.random() * pool.length)];
+        const imgUrl = getImgUrl(mode, randomKey);
+        html += createSlotItemHtml(randomKey, imgUrl);
       }
-      // 最後加上目標
-      html += `<div class="slot-item" style="color:var(--accent); font-size:1.1em;">${target}</div>`;
 
+      // === 關鍵修正：3x3 顯示邏輯 ===
+      // 當我們停下來時，目標必須在「中間那一格」。
+      // 結構應該是： [隨機...] + [上一個] + [目標(中)] + [下一個]
+      // 這樣停在 [目標] 的位置時，上下才會有東西，不會空白。
+      
+      const targetImg = getImgUrl(mode, target);
+      
+      // 添加目標前的裝飾 (位於上方)
+      const prevKey = pool[Math.floor(Math.random() * pool.length)];
+      html += createSlotItemHtml(prevKey, getImgUrl(mode, prevKey));
+
+      // ★ 目標 (這格會停在正中間) ★
+      html += createSlotItemHtml(target, targetImg);
+
+      // 添加目標後的裝飾 (位於下方)
+      const nextKey = pool[Math.floor(Math.random() * pool.length)];
+      html += createSlotItemHtml(nextKey, getImgUrl(mode, nextKey));
+
+      // 填入 HTML
       element.innerHTML = html;
+      
+      // 重置位置
       element.style.transition = 'none';
       element.style.transform = 'translateY(0)';
-      element.offsetHeight; // Reflow
+      element.offsetHeight; // 強制重繪
 
-      // 計算位移距離：總項目數 * 單項高度
-      // 因為 CSS 裡 .slot-item height 繼承了 container 的 height，所以直接用 container height 計算
-      // 這裡要微調：slotContainer.clientHeight 包含 padding? 不，clientHeight 是 content + padding
-      // 但我們 CSS 設定了 box-sizing: border-box 在 .slot-item 嗎？
-      // 最保險的方式：直接讀取第一個 slot-item 的高度 (雖然現在還沒 render 完可能不準)
-      // 替代方案：傳入的 itemHeight 應該要是 container 的高度 (對應 CSS var(--slot-height))
+      // 計算位移
+      // 我們要讓 [目標] 停在視窗的中間。
+      // 視窗高度 = 3 * itemHeight。 中間位置是 top: itemHeight。
+      // 現在總共有 count + 3 個項目。
+      // 目標是倒數第 2 個 (索引 count + 1)。
+      // 目標的 top 位置是 (count + 1) * itemHeight。
+      // 我們要移動讓目標的 top 變成 itemHeight (相對於視窗)。
+      // 所以 translateY = - (目標原始top - 視窗目標top)
+      // translateY = - ( (count+1)*h - 1*h ) = - (count * h)
       
-      const totalItems = 30 + 1; 
-      const finalPos = -(totalItems - 1) * itemHeight; // 向上移動
+      const finalY = -1 * (count * itemHeight);
 
-      element.style.transition = `transform ${duration}ms cubic-bezier(0.15, 0.9, 0.25, 1)`;
-      element.style.transform = `translateY(${finalPos}px)`;
+      // 啟動 CSS 動畫 (cubic-bezier 讓結尾有煞車感)
+      element.style.transition = `transform ${duration}ms cubic-bezier(0.15, 0.9, 0.30, 1)`;
+      element.style.transform = `translateY(${finalY}px)`;
 
       if(callback) {
         setTimeout(callback, duration);
       }
+    }
+
+    // 輔助：產生單格 HTML
+    function createSlotItemHtml(text, imgUrl) {
+      let content = '';
+      if (imgUrl) {
+        content = `<img src="${imgUrl}" class="slot-img" alt="${text}"><div class="slot-text">${text}</div>`;
+      } else {
+        // 沒有圖就顯示文字大一點
+        content = `<div style="font-size:1.5rem; color:#d65db1;">${text}</div>`;
+      }
+      return `<div class="slot-item">${content}</div>`;
+    }
+
+    // 輔助：根據模式與Key找圖片
+    function getImgUrl(mode, key) {
+      if (mode === 'TYPE') {
+        return CATALOG.types[key] || '';
+      } else if (mode === 'COLOR') {
+        return CATALOG.colors[key] || '';
+      }
+      return '';
     }
 
     function showFinalResult(data) {
@@ -459,15 +552,6 @@
     }
 
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-    // 簡單的裝置偵測 (如果你需要統計或做特殊處理)
-    function detectDevice() {
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      console.log("Device Detected:", isMobile ? "Mobile" : "Desktop");
-      
-      // 如果需要，可以在 body 加 class
-      if(isMobile) document.body.classList.add('is-mobile');
-    }
   </script>
 </body>
 </html>
