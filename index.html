@@ -548,15 +548,12 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ★★★ 已移除前端 fetchBase64Image 函式 ★★★
-
     function generateImageForSave() {
       const target = document.getElementById('capture-target');
       const originalText = screenshotBtn.textContent;
       screenshotBtn.textContent = '📸 處理中...';
       screenshotBtn.disabled = true;
 
-      // 這裡不需要 useCORS: true，因為圖片已經是安全的 Base64 資料了
       html2canvas(target, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
         try {
           const imgUrl = canvas.toDataURL("image/png");
@@ -720,14 +717,12 @@
 
       const img = document.getElementById('final-img');
       
-      // ★★★ 關鍵修改：直接使用後端傳回的 Base64 資料，無需任何前端處理 ★★★
+      // ★★★ 關鍵修正：現在 data.image_url 已經是 Base64 了，直接顯示即可 ★★★
       if(data.image_url && data.image_url.startsWith('data:image')) {
         img.src = data.image_url;
         img.style.display = 'block';
       } else {
-        // 如果後端沒有傳回有效的 Base64 圖片，則隱藏圖片
         img.style.display = 'none';
-        console.error('Invalid image data received from server');
       }
 
       if (CATALOG.stocks[data.type]) {
