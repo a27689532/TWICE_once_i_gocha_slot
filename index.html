@@ -12,8 +12,7 @@
       --bg: #fff0f5;
       
       /* === 尺寸設定 (電腦版預設) === */
-      --item-height: 120px; /* 電腦版也稍微加大 */
-      /* 顯示區高度 3格 */
+      --item-height: 120px; 
       --slot-view-height: calc(var(--item-height) * 3);
     }
 
@@ -33,7 +32,7 @@
 
     .container {
       width: 100%;
-      max-width: 500px; /* 限制最大寬度 */
+      max-width: 500px;
       text-align: center;
       position: relative;
     }
@@ -41,7 +40,7 @@
     /* 輸入區 */
     #start-screen {
       background: white;
-      padding: 40px 25px; /* 增加內距讓畫面更大器 */
+      padding: 40px 25px;
       border-radius: 25px;
       box-shadow: 0 10px 30px rgba(214, 93, 177, 0.2);
       border: 3px solid white;
@@ -94,12 +93,13 @@
       border-radius: 10px;
       margin-left: 6px;
       color: var(--primary);
+      font-family: monospace; /* 讓數字寬度一致比較好看 */
     }
     
     input[type="text"] {
       width: 100%;
       box-sizing: border-box;
-      padding: 18px; /* 加大輸入框 */
+      padding: 18px;
       font-size: 1.5rem;
       border: 3px solid #eee;
       border-radius: 15px;
@@ -116,7 +116,7 @@
       background: linear-gradient(45deg, var(--primary), var(--secondary));
       color: white;
       border: none;
-      padding: 18px 0; /* 加大按鈕 */
+      padding: 18px 0;
       width: 100%;
       font-size: 1.3rem;
       border-radius: 50px;
@@ -168,7 +168,7 @@
     }
     .win-path {
       stroke: rgba(255, 0, 0, 0.8);
-      stroke-width: 10; /* 線條加粗 */
+      stroke-width: 10;
       stroke-linecap: round;
       fill: none;
       filter: drop-shadow(0 0 8px red);
@@ -208,7 +208,7 @@
       align-items: center;
       box-sizing: border-box; 
       border-bottom: 1px solid #eee;
-      padding: 8px 4px; /* 上下邊距加大 */
+      padding: 8px 4px;
       overflow: hidden;
       background: white;
     }
@@ -248,14 +248,14 @@
     #overlay {
       display: none;
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7); /* 背景更深一點 */
+      background: rgba(0,0,0,0.7);
       z-index: 998;
       backdrop-filter: blur(4px);
     }
     
     .final-prize-img {
       width: 100%;
-      max-height: 300px; /* 結果圖也可以大一點 */
+      max-height: 300px;
       object-fit: contain;
       border: 4px solid var(--primary);
       border-radius: 15px;
@@ -268,31 +268,21 @@
     /* === 📱 手機版專屬大尺寸設定 === */
     @media screen and (max-width: 600px) {
       :root { 
-        /* ★ 關鍵修改：讓單格高度變大到 120px */
-        /* 這樣 3 格就會是 360px 高，看起來很長、很大方 */
         --item-height: 120px; 
       }
       
       h1 { font-size: 1.6rem; }
 
-      .container {
-        /* 手機上幾乎佔滿寬度 */
-        width: 95%;
-      }
+      .container { width: 95%; }
 
-      /* 圖片高度佔 70%，空間很足夠 */
-      .slot-img {
-        height: 70%; 
-      }
+      .slot-img { height: 70%; }
       
-      /* 文字可以大一點了 */
       .slot-text {
         font-size: 0.85rem; 
         margin-top: 8px;
         line-height: 1.2;
       }
 
-      /* 拉霸機外框微調 */
       .slot-container {
         border-width: 5px;
         gap: 4px;
@@ -429,17 +419,29 @@
       }
     }
 
+    // === 修改後的 renderStocks：包含機率計算 ===
     function renderStocks() {
       stockArea.innerHTML = '';
-      if (Object.keys(CATALOG.stocks).length === 0) {
-        stockArea.textContent = '目前沒有庫存資料';
+      const stocks = CATALOG.stocks;
+      
+      // 1. 計算總庫存
+      const total = Object.values(stocks).reduce((sum, val) => sum + val, 0);
+
+      if (total === 0) {
+        stockArea.textContent = '目前已無庫存';
         return;
       }
-      for (const [type, count] of Object.entries(CATALOG.stocks)) {
+      
+      // 2. 排序並顯示
+      for (const [type, count] of Object.entries(stocks)) {
         if (count > 0) {
+          // 計算機率 (保留1位小數)
+          const probability = ((count / total) * 100).toFixed(1);
+
           const badge = document.createElement('div');
           badge.className = 'stock-badge';
-          badge.innerHTML = `${type} <span>${count}</span>`;
+          // 顯示：種類 數量 (機率%)
+          badge.innerHTML = `${type} <span>${count} (${probability}%)</span>`;
           stockArea.appendChild(badge);
         }
       }
