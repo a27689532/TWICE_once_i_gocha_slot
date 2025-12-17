@@ -56,7 +56,6 @@
       line-height: 1.3;
     }
 
-    /* 新增：應援連結樣式 */
     .promo-link {
       display: inline-block;
       margin-bottom: 25px;
@@ -311,13 +310,17 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
     // 全域變數
-    let CATALOG = { types: {}, colors: {} };
+    // CATALOG.types: 種類名稱 -> 圖片陣列
+    // CATALOG.relations: 種類名稱 -> { 角色名稱 -> 圖片陣列 }
+    let CATALOG = { 
+      types: {}, 
+      relations: {} 
+    };
     
     // 預設資料
     const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
     const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
 
-    // 中獎模式
     const WIN_PATTERNS = [
       { name: 'MIDDLE', rows: [1, 1, 1], svg: 'M0,150 L300,150' },
       { name: 'TOP',    rows: [0, 0, 0], svg: 'M0,50 L300,50' },
@@ -337,7 +340,6 @@
     const loadingHint = document.getElementById('loading-hint');
     const winPath = document.getElementById('win-path');
 
-    // 只在網頁第一次打開時下載圖片，之後玩第二次都不用下載
     window.onload = function() { fetchCatalog(); };
 
     function fetchCatalog() {
@@ -363,45 +365,30 @@
     }
 
     function processCatalog(data) {
+      // 1. 處理種類圖片
       if (data.typeImages) {
         for (const [type, imgs] of Object.entries(data.typeImages)) {
           if (imgs && imgs.length > 0) CATALOG.types[type] = imgs;
         }
       }
+      // 2. 處理關係圖片 (Type -> Lovelys -> Images)
+      // GAS 回傳結構: typeLovelyImages[type][color] = [imgs]
+      // 我們直接存下來，這樣第二階段就可以根據 type 找圖
       if (data.typeLovelyImages) {
-        for (const typeKey in data.typeLovelyImages) {
-          const colorMap = data.typeLovelyImages[typeKey];
-          for (const colorKey in colorMap) {
-            const imgs = colorMap[colorKey];
-            if (imgs && imgs.length > 0) {
-              if(!CATALOG.colors[colorKey]) CATALOG.colors[colorKey] = [];
-              CATALOG.colors[colorKey].push(...imgs);
-            }
-          }
-        }
+        CATALOG.relations = data.typeLovelyImages;
       }
     }
 
     drawBtn.addEventListener('click', startProcess);
     codeInput.addEventListener('keypress', (e) => { if(e.key==='Enter') startProcess(); });
 
-    // === 新增：重置遊戲 (不會重新整理網頁，所以圖片不用重抓) ===
     function resetGame() {
-      // 隱藏結果視窗
       resultCard.style.display = 'none';
       overlay.style.display = 'none';
-      
-      // 隱藏拉霸機
       slotArea.style.display = 'none';
-      
-      // 顯示首頁
       startScreen.style.display = 'block';
-      
-      // 清空輸入框並聚焦
       codeInput.value = '';
       msgBox.textContent = '';
-      
-      // 重置按鈕狀態
       drawBtn.disabled = false;
       drawBtn.textContent = '開始抽獎';
     }
@@ -447,22 +434,33 @@
 
       const typeKeys = Object.keys(CATALOG.types).length > 0 ? Object.keys(CATALOG.types) : DEFAULT_TYPES;
       
+      // === 第一階段：抽種類 ===
       machineStatus.textContent = '✨ 抽選種類中... ✨';
-      await spinAllReels(typeKeys, data.type, 'TYPE', pattern);
+      // 注意：這裡 contextType 傳 null，因為第一階段不需要依賴其他資訊
+      await spinAllReels(typeKeys, data.type, 'TYPE', pattern, null);
 
       winPath.classList.add('show');
       await wait(1000);
       winPath.classList.remove('show');
 
-      const colorKeys = Object.keys(CATALOG.colors).length > 0 ? Object.keys(CATALOG.colors) : DEFAULT_LOVELYS;
+      // 準備第二階段的 key (角色名)
+      // 我們可以從 Catalog 裡的 relations 抓出所有角色名，或者用預設的
+      // 這裡簡單處理：如果有 relations[data.type] 就用裡面的 keys，否則用預設
+      let colorKeys = DEFAULT_LOVELYS;
+      if (CATALOG.relations[data.type]) {
+        const keys = Object.keys(CATALOG.relations[data.type]);
+        if (keys.length > 0) colorKeys = keys;
+      }
 
+      // === 第二階段：抽角色 ===
       machineStatus.textContent = '💖 召喚 LOVELYS... 💖';
       machineStatus.style.color = '#ffeb3b';
       
       const pattern2 = WIN_PATTERNS[Math.floor(Math.random() * WIN_PATTERNS.length)];
       winPath.setAttribute('d', pattern2.svg);
       
-      await spinAllReels(colorKeys, data.color, 'COLOR', pattern2);
+      // ★★★ 修正關鍵：把 data.type 傳進去，讓 getRandomImg 知道要抓哪個種類的圖 ★★★
+      await spinAllReels(colorKeys, data.color, 'COLOR', pattern2, data.type);
 
       winPath.classList.add('show');
       await wait(800);
@@ -470,7 +468,8 @@
       showFinalResult(data);
     }
 
-    function spinAllReels(poolKeys, targetText, mode, pattern) {
+    // 增加參數：contextType (用於第二階段鎖定種類)
+    function spinAllReels(poolKeys, targetText, mode, pattern, contextType) {
       return new Promise(resolve => {
         const reels = [
           document.getElementById('reel-1'),
@@ -481,29 +480,29 @@
         const style = getComputedStyle(document.documentElement);
         const itemHeight = parseInt(style.getPropertyValue('--item-height')) || 100;
 
-        spinOneReel(reels[0], poolKeys, targetText, mode, durations[0], itemHeight, pattern.rows[0]);
-        spinOneReel(reels[1], poolKeys, targetText, mode, durations[1], itemHeight, pattern.rows[1]);
-        spinOneReel(reels[2], poolKeys, targetText, mode, durations[2], itemHeight, pattern.rows[2], resolve);
+        spinOneReel(reels[0], poolKeys, targetText, mode, durations[0], itemHeight, pattern.rows[0], null, contextType);
+        spinOneReel(reels[1], poolKeys, targetText, mode, durations[1], itemHeight, pattern.rows[1], null, contextType);
+        spinOneReel(reels[2], poolKeys, targetText, mode, durations[2], itemHeight, pattern.rows[2], resolve, contextType);
       });
     }
 
-    function spinOneReel(element, pool, target, mode, duration, itemHeight, targetRowIndex, callback) {
+    function spinOneReel(element, pool, target, mode, duration, itemHeight, targetRowIndex, callback, contextType) {
       let html = '';
       const count = 40; 
 
       for(let i=0; i<count; i++) {
         const randomKey = pool[Math.floor(Math.random() * pool.length)];
-        const imgUrl = getRandomImg(mode, randomKey);
+        const imgUrl = getRandomImg(mode, randomKey, contextType);
         html += createSlotItemHtml(randomKey, imgUrl);
       }
 
       const prevKey = pool[Math.floor(Math.random() * pool.length)];
-      html += createSlotItemHtml(prevKey, getRandomImg(mode, prevKey));
+      html += createSlotItemHtml(prevKey, getRandomImg(mode, prevKey, contextType));
 
-      html += createSlotItemHtml(target, getRandomImg(mode, target));
+      html += createSlotItemHtml(target, getRandomImg(mode, target, contextType));
 
       const nextKey = pool[Math.floor(Math.random() * pool.length)];
-      html += createSlotItemHtml(nextKey, getRandomImg(mode, nextKey));
+      html += createSlotItemHtml(nextKey, getRandomImg(mode, nextKey, contextType));
 
       element.innerHTML = html;
       
@@ -521,13 +520,20 @@
       }
     }
 
-    function getRandomImg(mode, key) {
-      let arr = [];
-      if (mode === 'TYPE') arr = CATALOG.types[key];
-      else if (mode === 'COLOR') arr = CATALOG.colors[key];
-
-      if (arr && arr.length > 0) {
-        return arr[Math.floor(Math.random() * arr.length)];
+    // ★★★ 修正後的圖片選取邏輯 ★★★
+    function getRandomImg(mode, key, contextType) {
+      if (mode === 'TYPE') {
+        // 第一階段：直接拿該種類的圖
+        const arr = CATALOG.types[key];
+        if (arr && arr.length > 0) return arr[Math.floor(Math.random() * arr.length)];
+      } 
+      else if (mode === 'COLOR') {
+        // 第二階段：要拿「contextType (種類) 底下的 key (角色)」的圖
+        // 例如：contextType="車車", key="TZUVELY" -> 找 車車底下的 TZUVELY
+        if (contextType && CATALOG.relations[contextType]) {
+          const arr = CATALOG.relations[contextType][key];
+          if (arr && arr.length > 0) return arr[Math.floor(Math.random() * arr.length)];
+        }
       }
       return '';
     }
