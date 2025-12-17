@@ -108,7 +108,6 @@
       color: var(--accent);
     }
 
-    /* 新增：提示文字樣式 */
     .stock-hint {
       font-size: 0.8rem;
       color: #999;
@@ -549,22 +548,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // === ★★★ 修復：防止第二次抽獎圖片空白 ★★★ ===
-    // 方法：在網址後方加上隨機時間戳記 (timestamp)，強迫瀏覽器重新下載，不使用快取
-    async function getBase64Image(url) {
-      // 判斷 url 是否已經有參數，有就用 & 連接，沒有就用 ?
-      const separator = url.includes('?') ? '&' : '?';
-      const noCacheUrl = `${url}${separator}t=${new Date().getTime()}`;
-
-      const response = await fetch(noCacheUrl);
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
+    // ★★★ 已移除前端 fetchBase64Image 函式 ★★★
 
     function generateImageForSave() {
       const target = document.getElementById('capture-target');
@@ -572,6 +556,7 @@
       screenshotBtn.textContent = '📸 處理中...';
       screenshotBtn.disabled = true;
 
+      // 這裡不需要 useCORS: true，因為圖片已經是安全的 Base64 資料了
       html2canvas(target, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
         try {
           const imgUrl = canvas.toDataURL("image/png");
@@ -734,33 +719,15 @@
       document.getElementById('final-code').textContent = data.prize_key;
 
       const img = document.getElementById('final-img');
-      let safeImgUrl = '';
-      if (CATALOG.relations[data.type] && CATALOG.relations[data.type][data.color]) {
-         const arr = CATALOG.relations[data.type][data.color];
-         if (arr.length > 0) safeImgUrl = arr[0];
-      }
-      if (!safeImgUrl) safeImgUrl = data.image_url;
-
-      if(safeImgUrl) {
-        img.src = safeImgUrl;
+      
+      // ★★★ 關鍵修改：直接使用後端傳回的 Base64 資料，無需任何前端處理 ★★★
+      if(data.image_url && data.image_url.startsWith('data:image')) {
+        img.src = data.image_url;
         img.style.display = 'block';
-        screenshotBtn.disabled = true;
-        screenshotBtn.textContent = '🔄 準備圖片中...';
-        
-        getBase64Image(safeImgUrl)
-          .then(base64Data => {
-            img.src = base64Data;
-            screenshotBtn.disabled = false;
-            screenshotBtn.textContent = '📸 產生圖片 (長按儲存)';
-          })
-          .catch(err => {
-            console.error("Base64 convert failed", err);
-            screenshotBtn.disabled = false;
-            screenshotBtn.textContent = '📸 產生圖片 (長按儲存)';
-          });
       } else {
+        // 如果後端沒有傳回有效的 Base64 圖片，則隱藏圖片
         img.style.display = 'none';
-        screenshotBtn.disabled = false;
+        console.error('Invalid image data received from server');
       }
 
       if (CATALOG.stocks[data.type]) {
