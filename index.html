@@ -11,8 +11,8 @@
       --accent: #d65db1;
       --bg: #fff0f5;
       
-      /* === 尺寸設定 === */
-      --item-height: 100px; 
+      /* === 尺寸設定 (電腦版預設) === */
+      --item-height: 120px; /* 電腦版也稍微加大 */
       /* 顯示區高度 3格 */
       --slot-view-height: calc(var(--item-height) * 3);
     }
@@ -33,7 +33,7 @@
 
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 500px; /* 限制最大寬度 */
       text-align: center;
       position: relative;
     }
@@ -41,7 +41,7 @@
     /* 輸入區 */
     #start-screen {
       background: white;
-      padding: 30px 20px;
+      padding: 40px 25px; /* 增加內距讓畫面更大器 */
       border-radius: 25px;
       box-shadow: 0 10px 30px rgba(214, 93, 177, 0.2);
       border: 3px solid white;
@@ -52,61 +52,63 @@
     h1 { 
       color: var(--accent); 
       margin-top: 0; 
-      font-size: 1.6rem; 
-      margin-bottom: 10px;
+      font-size: 1.8rem; 
+      margin-bottom: 15px;
       line-height: 1.3;
+      text-transform: uppercase;
     }
 
     .promo-link {
       display: inline-block;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       color: var(--primary);
       text-decoration: none;
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: bold;
       border-bottom: 2px dashed var(--primary);
-      padding-bottom: 2px;
+      padding-bottom: 4px;
+      line-height: 1.5;
     }
 
-    /* === 新增：庫存顯示區 === */
+    /* 庫存顯示區 */
     #stock-area {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     .stock-badge {
       background: #fce4ec;
       border: 1px solid #f8bbd0;
       color: #c2185b;
-      padding: 5px 10px;
-      border-radius: 15px;
-      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
       font-weight: bold;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     .stock-badge span {
       background: white;
-      padding: 1px 6px;
+      padding: 2px 8px;
       border-radius: 10px;
-      margin-left: 5px;
+      margin-left: 6px;
       color: var(--primary);
     }
     
     input[type="text"] {
       width: 100%;
       box-sizing: border-box;
-      padding: 15px;
-      font-size: 1.4rem;
+      padding: 18px; /* 加大輸入框 */
+      font-size: 1.5rem;
       border: 3px solid #eee;
       border-radius: 15px;
       text-align: center;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       color: var(--accent);
       outline: none;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     input:focus { border-color: var(--primary); }
 
@@ -114,13 +116,13 @@
       background: linear-gradient(45deg, var(--primary), var(--secondary));
       color: white;
       border: none;
-      padding: 15px 0;
+      padding: 18px 0; /* 加大按鈕 */
       width: 100%;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       border-radius: 50px;
       cursor: pointer;
       font-weight: bold;
-      box-shadow: 0 5px 15px rgba(255, 111, 145, 0.4);
+      box-shadow: 0 6px 20px rgba(255, 111, 145, 0.4);
       transition: 0.2s;
     }
     .btn-draw:disabled { background: #ccc; cursor: wait; transform: none; box-shadow: none; }
@@ -130,28 +132,28 @@
       display: none;
       background: var(--accent);
       padding: 15px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      border-radius: 25px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
       position: relative;
     }
 
     .machine-status {
       color: white;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       margin-bottom: 15px;
       font-weight: bold;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
       min-height: 1.5em;
     }
 
     .slot-container {
       display: flex;
       justify-content: space-between;
-      gap: 5px;
+      gap: 6px;
       background: #222;
-      padding: 5px;
-      border-radius: 10px;
-      border: 5px solid #ffccbc;
+      padding: 8px;
+      border-radius: 15px;
+      border: 6px solid #ffccbc;
       height: var(--slot-view-height);
       overflow: hidden;
       position: relative;
@@ -166,10 +168,10 @@
     }
     .win-path {
       stroke: rgba(255, 0, 0, 0.8);
-      stroke-width: 8;
+      stroke-width: 10; /* 線條加粗 */
       stroke-linecap: round;
       fill: none;
-      filter: drop-shadow(0 0 5px red);
+      filter: drop-shadow(0 0 8px red);
       opacity: 0;
       transition: opacity 0.3s;
     }
@@ -178,8 +180,8 @@
     .slot-container::after {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0; height: 30%;
-      background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
+      top: 0; left: 0; right: 0; height: 35%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.25), transparent);
       pointer-events: none;
       z-index: 5;
     }
@@ -189,7 +191,7 @@
       flex: 1;
       position: relative;
       overflow: hidden;
-      border-radius: 4px;
+      border-radius: 6px;
     }
 
     .reel-strip {
@@ -198,7 +200,6 @@
       will-change: transform;
     }
 
-    /* 強制設定 box-sizing 和高度，避免空隙 */
     .slot-item {
       height: var(--item-height);
       display: flex;
@@ -207,24 +208,27 @@
       align-items: center;
       box-sizing: border-box; 
       border-bottom: 1px solid #eee;
-      padding: 5px;
+      padding: 8px 4px; /* 上下邊距加大 */
       overflow: hidden;
-      background: white; /* 確保背景是白的，不是透明 */
+      background: white;
     }
 
     .slot-img {
       width: 100%;
-      height: 80%;
+      height: 75%; 
       object-fit: contain;
+      flex-shrink: 0;
     }
+    
     .slot-text {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: #333;
       font-weight: bold;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 2px;
+      margin-top: 6px;
+      line-height: 1.2;
     }
 
     /* === 結果彈窗 === */
@@ -233,10 +237,10 @@
       position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background: white;
-      padding: 25px;
-      width: 85%; max-width: 400px;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      padding: 30px;
+      width: 90%; max-width: 420px;
+      border-radius: 25px;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.6);
       z-index: 999;
       animation: popIn 0.5s cubic-bezier(0.17, 0.67, 0.43, 1.45);
       text-align: center;
@@ -244,28 +248,57 @@
     #overlay {
       display: none;
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7); /* 背景更深一點 */
       z-index: 998;
-      backdrop-filter: blur(3px);
+      backdrop-filter: blur(4px);
     }
     
     .final-prize-img {
       width: 100%;
-      max-height: 250px;
+      max-height: 300px; /* 結果圖也可以大一點 */
       object-fit: contain;
-      border: 3px solid var(--primary);
-      border-radius: 10px;
-      margin-bottom: 10px;
+      border: 4px solid var(--primary);
+      border-radius: 15px;
+      margin-bottom: 15px;
     }
 
-    .status-msg { margin-top: 10px; color: var(--primary); font-weight: bold; font-size: 0.9rem; }
+    .status-msg { margin-top: 15px; color: var(--primary); font-weight: bold; font-size: 1rem; }
     .error { color: #e53935; }
 
+    /* === 📱 手機版專屬大尺寸設定 === */
     @media screen and (max-width: 600px) {
-      :root { --item-height: 80px; }
-      .slot-text { font-size: 0.7rem; }
-      h1 { font-size: 1.4rem; }
+      :root { 
+        /* ★ 關鍵修改：讓單格高度變大到 120px */
+        /* 這樣 3 格就會是 360px 高，看起來很長、很大方 */
+        --item-height: 120px; 
+      }
+      
+      h1 { font-size: 1.6rem; }
+
+      .container {
+        /* 手機上幾乎佔滿寬度 */
+        width: 95%;
+      }
+
+      /* 圖片高度佔 70%，空間很足夠 */
+      .slot-img {
+        height: 70%; 
+      }
+      
+      /* 文字可以大一點了 */
+      .slot-text {
+        font-size: 0.85rem; 
+        margin-top: 8px;
+        line-height: 1.2;
+      }
+
+      /* 拉霸機外框微調 */
+      .slot-container {
+        border-width: 5px;
+        gap: 4px;
+      }
     }
+
     @keyframes popIn {
       0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -289,13 +322,13 @@
       
       <div id="stock-area">載入庫存中...</div>
 
-      <p style="color:#888; font-size:0.9rem; margin-top:10px;">輸入序號開始轉動幸運</p>
+      <p style="color:#888; font-size:1rem; margin-top:15px;">輸入序號開始轉動幸運</p>
       
       <input type="text" id="code-input" placeholder="請輸入序號" maxlength="8" autocomplete="off">
       <button id="draw-btn" class="btn-draw">開始抽獎</button>
       
       <div id="msg-box" class="status-msg"></div>
-      <div id="loading-hint" style="display:none; color:#aaa; font-size:0.8rem; margin-top:5px;">正在下載圖片素材...</div>
+      <div id="loading-hint" style="display:none; color:#aaa; font-size:0.8rem; margin-top:10px;">正在下載圖片素材...</div>
     </div>
 
     <div id="slot-machine-area">
@@ -315,14 +348,14 @@
     <div id="result-card">
       <h2 style="color:var(--secondary); margin:0 0 10px 0;">🎉 CONGRATULATIONS!</h2>
       <img id="final-img" class="final-prize-img" src="" alt="Prize">
-      <h3 id="final-name" style="color:var(--accent); margin:5px 0;"></h3>
-      <p id="final-detail" style="color:#666; margin:5px 0;"></p>
-      <div style="background:#eee; padding:5px; border-radius:5px; display:inline-block; margin-top:10px;">
-        <span style="font-size:0.8rem;">序號: </span>
-        <strong id="final-code" style="color:#555;"></strong>
+      <h3 id="final-name" style="color:var(--accent); margin:5px 0; font-size:1.5rem;"></h3>
+      <p id="final-detail" style="color:#666; margin:5px 0; font-size:1.1rem;"></p>
+      <div style="background:#eee; padding:5px 15px; border-radius:5px; display:inline-block; margin-top:10px;">
+        <span style="font-size:0.9rem;">序號: </span>
+        <strong id="final-code" style="color:#555; font-size:1.1rem;"></strong>
       </div>
       <br>
-      <button onclick="resetGame()" class="btn-draw" style="margin-top:20px; padding:10px 30px;">再玩一次</button>
+      <button onclick="resetGame()" class="btn-draw" style="margin-top:20px; padding:12px 40px;">再玩一次</button>
     </div>
 
   </div>
@@ -331,12 +364,7 @@
     // ★★★ 請替換成您的 GAS 網址 ★★★
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
-    // 全域資料
-    let CATALOG = { 
-      types: {}, 
-      relations: {},
-      stocks: {} // 儲存庫存資料
-    };
+    let CATALOG = { types: {}, relations: {}, stocks: {} };
     
     const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
     const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
@@ -372,7 +400,7 @@
         .then(data => {
           if(data.ok) {
             processCatalog(data);
-            renderStocks(); // 繪製庫存
+            renderStocks();
             loadingHint.style.display = 'none';
             drawBtn.disabled = false;
           } else {
@@ -396,7 +424,6 @@
       if (data.typeLovelyImages) {
         CATALOG.relations = data.typeLovelyImages;
       }
-      // 處理庫存
       if (data.typeStocks) {
         CATALOG.stocks = data.typeStocks;
       }
@@ -408,8 +435,6 @@
         stockArea.textContent = '目前沒有庫存資料';
         return;
       }
-      
-      // 排序並顯示
       for (const [type, count] of Object.entries(CATALOG.stocks)) {
         if (count > 0) {
           const badge = document.createElement('div');
@@ -529,15 +554,11 @@
         html += createSlotItemHtml(randomKey, imgUrl);
       }
 
-      // === 結構優化：防止空白 ===
-      // 上方裝飾 (1個)
       const prevKey = pool[Math.floor(Math.random() * pool.length)];
       html += createSlotItemHtml(prevKey, getRandomImg(mode, prevKey, contextType));
 
-      // ★ 目標 (索引 count+1)
       html += createSlotItemHtml(target, getRandomImg(mode, target, contextType));
 
-      // 下方裝飾 (增加到 3 個，確保就算停在最下面，下面還有東西)
       for(let k=0; k<3; k++) {
         const nextKey = pool[Math.floor(Math.random() * pool.length)];
         html += createSlotItemHtml(nextKey, getRandomImg(mode, nextKey, contextType));
@@ -596,11 +617,10 @@
         img.style.display = 'none';
       }
 
-      // === 前端即時扣庫存 (不用重新整理) ===
       if (CATALOG.stocks[data.type]) {
         CATALOG.stocks[data.type]--;
         if (CATALOG.stocks[data.type] < 0) CATALOG.stocks[data.type] = 0;
-        renderStocks(); // 重新繪製庫存標籤
+        renderStocks(); 
       }
 
       overlay.style.display = 'block';
