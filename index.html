@@ -4,6 +4,9 @@
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TWICE ❤️ ONCE I GOCHA</title>
+  
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
   <style>
     :root {
       --primary: #ff6f91;
@@ -11,7 +14,7 @@
       --accent: #d65db1;
       --bg: #fff0f5;
       
-      /* === 尺寸設定 (電腦版預設) === */
+      /* === 尺寸設定 === */
       --item-height: 120px; 
       --slot-view-height: calc(var(--item-height) * 3);
     }
@@ -175,7 +178,7 @@
       fill: none;
       filter: drop-shadow(0 0 8px red);
       opacity: 0;
-      transition: opacity 0.5s; /* 增加一點轉場時間，讓淡出更平滑 */
+      transition: opacity 0.5s; 
     }
     .win-path.show { opacity: 1; }
 
@@ -243,7 +246,39 @@
       border: 3px solid var(--primary);
       text-align: center;
       animation: slideUp 0.5s ease-out;
+      overflow: hidden; /* 避免截圖時邊緣問題 */
     }
+
+    /* 新增：提醒文字樣式 */
+    .screenshot-alert {
+      color: #c2185b;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border: 2px dashed var(--primary);
+      background-color: #fff0f5;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 15px auto;
+      display: inline-block;
+      line-height: 1.6;
+    }
+
+    /* 截圖按鈕樣式 */
+    .btn-screenshot {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      margin-top: 20px;
+      width: 80%;
+      transition: 0.2s;
+    }
+    .btn-screenshot:active { transform: scale(0.95); }
 
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -325,22 +360,33 @@
     </div>
 
     <div id="inline-result-area">
-      <h2 style="color:var(--secondary); margin:0 0 15px 0; font-size:1.8rem;">🎉 CONGRATULATIONS!</h2>
-      <img id="final-img" class="final-prize-img" src="" alt="Prize">
-      <h3 id="final-name" style="color:var(--accent); margin:10px 0; font-size:1.6rem;"></h3>
-      <p id="final-detail" style="color:#666; margin:5px 0; font-size:1.2rem; font-weight:bold;"></p>
-      <div style="background:#eee; padding:8px 20px; border-radius:10px; display:inline-block; margin-top:15px;">
-        <span style="font-size:1rem;">中獎序號: </span>
-        <strong id="final-code" style="color:#555; font-size:1.2rem; font-family:monospace;"></strong>
+      <div id="capture-target" style="background:white; padding:10px; border-radius:15px;">
+        <h2 style="color:var(--secondary); margin:0 0 15px 0; font-size:1.8rem;">🎉 CONGRATULATIONS!</h2>
+        <img id="final-img" class="final-prize-img" src="" alt="Prize" crossorigin="anonymous">
+        
+        <h3 id="final-name" style="color:var(--accent); margin:10px 0; font-size:1.6rem;"></h3>
+        <p id="final-detail" style="color:#666; margin:5px 0; font-size:1.2rem; font-weight:bold;"></p>
+        
+        <div style="background:#eee; padding:8px 20px; border-radius:10px; display:inline-block; margin:15px 0;">
+          <span style="font-size:1rem;">中獎序號: </span>
+          <strong id="final-code" style="color:#555; font-size:1.2rem; font-family:monospace;"></strong>
+        </div>
+        
+        <br>
+        <div class="screenshot-alert">
+          ⚠️ 請記得截圖 ⚠️<br>
+          週五場次領取時需出示此畫面
+        </div>
       </div>
       <br>
-      <button onclick="resetGame()" class="btn-draw" style="margin-top:30px; padding:15px 50px; background:var(--accent);">再玩一次</button>
+      <button onclick="saveScreenshot()" class="btn-screenshot">📸 儲存中獎截圖</button>
+      
+      <button onclick="resetGame()" class="btn-draw" style="margin-top:20px; padding:15px 50px; background:var(--accent);">再玩一次</button>
     </div>
 
   </div>
 
   <script>
-    // ★★★ 請替換成您的 GAS 網址 ★★★
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
     let CATALOG = { types: {}, relations: {}, stocks: {} };
@@ -442,6 +488,40 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // === 新增：截圖功能 ===
+    function saveScreenshot() {
+      const target = document.getElementById('capture-target');
+      
+      // 為了避免按鈕文字改變太快，先鎖定
+      const btn = document.querySelector('.btn-screenshot');
+      const originalText = btn.textContent;
+      btn.textContent = '📸 處理中...';
+      btn.disabled = true;
+
+      html2canvas(target, {
+        scale: 2, // 提高解析度
+        useCORS: true, // 嘗試處理跨域圖片
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
+        // 建立下載連結
+        const link = document.createElement('a');
+        link.download = 'TWICE_Lottery_Win.png';
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        
+        btn.textContent = '✅ 已儲存';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }, 2000);
+      }).catch(err => {
+        console.error(err);
+        alert('自動截圖失敗，請您手動使用手機截圖功能保存畫面！');
+        btn.textContent = originalText;
+        btn.disabled = false;
+      });
+    }
+
     function startProcess() {
       const code = codeInput.value.trim().toUpperCase();
       if(!code) return showMsg('請輸入序號', 'error');
@@ -489,12 +569,10 @@
 
       winPath.classList.add('show');
       
-      // ★★★ 修正暴雷的關鍵：等待紅線完全淡出 ★★★
-      await wait(1500); // 讓使用者看清楚第一階段
-      winPath.classList.remove('show'); // 開始淡出
-      await wait(600);  // 等待 0.6秒 (配合 CSS 的 0.5s transition)，確保完全消失
+      await wait(1500);
+      winPath.classList.remove('show'); 
+      await wait(600);
       
-      // 到這裡紅線已經完全隱藏了，才可以安全的切換路徑
       let colorKeys = DEFAULT_LOVELYS;
       if (CATALOG.relations[data.type]) {
         const keys = Object.keys(CATALOG.relations[data.type]);
