@@ -4,16 +4,13 @@
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TWICE ❤️ ONCE I GOCHA</title>
-  
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-
   <style>
     :root {
       --primary: #ff6f91;
       --secondary: #ff9671;
       --accent: #d65db1;
       --bg: #fff0f5;
-      
       --item-height: 120px; 
       --slot-view-height: calc(var(--item-height) * 3);
     }
@@ -72,22 +69,26 @@
       line-height: 1.5;
     }
 
+    /* === 庫存顯示區優化 === */
     #stock-area {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 25px;
+      margin-bottom: 10px;
     }
     .stock-badge {
       background: #fce4ec;
-      border: 1px solid #f8bbd0;
+      border: 2px solid #f8bbd0;
       color: #c2185b;
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 0.9rem;
       font-weight: bold;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: 0.2s;
+      user-select: none;
     }
     .stock-badge span {
       background: white;
@@ -97,7 +98,50 @@
       color: var(--primary);
       font-family: monospace;
     }
+    /* 選中狀態 */
+    .stock-badge.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--accent);
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(255, 111, 145, 0.4);
+    }
+    .stock-badge.active span {
+      color: var(--accent);
+    }
+
+    /* === 新增：庫存詳細面板 === */
+    #stock-detail-panel {
+      display: none;
+      background: #fff;
+      border: 2px dashed var(--secondary);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 20px;
+      animation: expandDown 0.3s ease-out;
+    }
+    @keyframes expandDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* 兩欄顯示 */
+      gap: 8px;
+      text-align: left;
+    }
+    .detail-item {
+      font-size: 0.9rem;
+      color: #555;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .detail-item strong {
+      color: var(--accent);
+    }
+
+    /* 輸入框 */
     input[type="text"] {
       width: 100%;
       box-sizing: border-box;
@@ -129,7 +173,6 @@
     }
     .btn-draw:disabled { background: #ccc; cursor: wait; transform: none; box-shadow: none; }
 
-    /* === 拉霸機區域 === */
     #slot-machine-area {
       display: none;
       background: var(--accent);
@@ -189,52 +232,16 @@
       z-index: 5;
     }
 
-    .reel {
-      background: white;
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-      border-radius: 6px;
-    }
-
-    .reel-strip {
-      position: absolute;
-      top: 0; left: 0; width: 100%;
-      will-change: transform;
-    }
-
+    .reel { background: white; flex: 1; position: relative; overflow: hidden; border-radius: 6px; }
+    .reel-strip { position: absolute; top: 0; left: 0; width: 100%; will-change: transform; }
     .slot-item {
       height: var(--item-height);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box; 
-      border-bottom: 1px solid #eee;
-      padding: 8px 4px;
-      overflow: hidden;
-      background: white;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      box-sizing: border-box; border-bottom: 1px solid #eee; padding: 8px 4px; overflow: hidden; background: white;
     }
+    .slot-img { width: 100%; height: 75%; object-fit: contain; flex-shrink: 0; }
+    .slot-text { font-size: 0.9rem; color: #333; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 6px; line-height: 1.2; }
 
-    .slot-img {
-      width: 100%;
-      height: 75%; 
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-    
-    .slot-text {
-      font-size: 0.9rem;
-      color: #333;
-      font-weight: bold;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-top: 6px;
-      line-height: 1.2;
-    }
-
-    /* === 嵌入式結果顯示區 === */
     #inline-result-area {
       display: none;
       background: white;
@@ -260,7 +267,6 @@
       line-height: 1.6;
     }
 
-    /* 截圖按鈕 */
     .btn-screenshot {
       background: #4caf50;
       color: white;
@@ -276,6 +282,7 @@
       transition: 0.2s;
     }
     .btn-screenshot:active { transform: scale(0.95); }
+    .btn-screenshot:disabled { background: #ccc; box-shadow: none; cursor: wait; }
 
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -291,7 +298,6 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
-    /* === 圖片生成彈窗 (iOS專用) === */
     #img-modal {
       display: none;
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -303,25 +309,15 @@
       backdrop-filter: blur(5px);
     }
     #img-modal img {
-      max-width: 90%;
-      max-height: 80vh;
-      border: 2px solid white;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      max-width: 90%; max-height: 80vh; border: 2px solid white; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
     #img-modal p {
-      color: white;
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-bottom: 20px;
-      background: rgba(0,0,0,0.5);
-      padding: 10px 20px;
-      border-radius: 50px;
+      color: white; font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;
+      background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 50px;
     }
     .close-modal {
       position: absolute; top: 20px; right: 20px;
-      color: white; font-size: 30px; cursor: pointer;
-      background: none; border: none;
+      color: white; font-size: 30px; cursor: pointer; background: none; border: none;
     }
 
     .status-msg { margin-top: 15px; color: var(--primary); font-weight: bold; font-size: 1rem; }
@@ -347,7 +343,11 @@
          target="_blank" class="promo-link">
          🌟 台北大巨蛋週五場線上應援文章 🌟
       </a>
+      
       <div id="stock-area">載入庫存中...</div>
+      
+      <div id="stock-detail-panel"></div>
+
       <p style="color:#888; font-size:1rem; margin-top:15px;">輸入序號開始轉動幸運</p>
       <input type="text" id="code-input" placeholder="請輸入序號" maxlength="8" autocomplete="off">
       <button id="draw-btn" class="btn-draw">開始抽獎</button>
@@ -402,7 +402,8 @@
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
-    let CATALOG = { types: {}, relations: {}, stocks: {} };
+    // stocks: 總庫存, lovelyStocks: 細項庫存
+    let CATALOG = { types: {}, relations: {}, stocks: {}, lovelyStocks: {} };
     const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
     const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
 
@@ -423,9 +424,13 @@
     const loadingHint = document.getElementById('loading-hint');
     const winPath = document.getElementById('win-path');
     const stockArea = document.getElementById('stock-area');
+    const stockDetailPanel = document.getElementById('stock-detail-panel');
     const inlineResultArea = document.getElementById('inline-result-area');
     const imgModal = document.getElementById('img-modal');
     const genImgContainer = document.getElementById('generated-img-container');
+    const screenshotBtn = document.querySelector('.btn-screenshot');
+
+    let activeStockType = null; // 記錄目前展開的庫存類型
 
     window.onload = function() { fetchCatalog(); };
 
@@ -460,6 +465,7 @@
       }
       if (data.typeLovelyImages) CATALOG.relations = data.typeLovelyImages;
       if (data.typeStocks) CATALOG.stocks = data.typeStocks;
+      if (data.typeLovelyStocks) CATALOG.lovelyStocks = data.typeLovelyStocks;
     }
 
     function renderStocks() {
@@ -467,15 +473,57 @@
       const stocks = CATALOG.stocks;
       const total = Object.values(stocks).reduce((sum, val) => sum + val, 0);
       if (total === 0) { stockArea.textContent = '目前已無庫存'; return; }
+      
       for (const [type, count] of Object.entries(stocks)) {
         if (count > 0) {
           const probability = ((count / total) * 100).toFixed(1);
           const badge = document.createElement('div');
           badge.className = 'stock-badge';
+          if(type === activeStockType) badge.classList.add('active');
+          
           badge.innerHTML = `${type} <span>${count} (${probability}%)</span>`;
+          
+          // 點擊事件：展開詳細庫存
+          badge.onclick = () => toggleStockDetail(type);
+          
           stockArea.appendChild(badge);
         }
       }
+      // 如果目前有展開，則重新渲染詳細面板 (確保數字是最新的)
+      if (activeStockType) renderDetailPanel();
+    }
+
+    // === 切換詳細庫存面板 ===
+    function toggleStockDetail(type) {
+      if (activeStockType === type) {
+        // 再次點擊同一個 -> 關閉
+        activeStockType = null;
+        stockDetailPanel.style.display = 'none';
+      } else {
+        // 點擊新的 -> 開啟
+        activeStockType = type;
+        stockDetailPanel.style.display = 'block';
+        renderDetailPanel();
+      }
+      renderStocks(); // 重新渲染上面的按鈕以顯示 active 狀態
+    }
+
+    function renderDetailPanel() {
+      if (!activeStockType) return;
+      const details = CATALOG.lovelyStocks[activeStockType] || {};
+      
+      // 如果該種類完全沒細項資料
+      if (Object.keys(details).length === 0) {
+        stockDetailPanel.innerHTML = '<div style="color:#888;">尚無詳細資料</div>';
+        return;
+      }
+
+      let html = `<div class="detail-grid">`;
+      for (const [lovelys, count] of Object.entries(details)) {
+        html += `<div class="detail-item"><strong>${lovelys}</strong>: ${count}</div>`;
+      }
+      html += `</div>`;
+      stockDetailPanel.innerHTML = html;
     }
 
     drawBtn.addEventListener('click', startProcess);
@@ -492,40 +540,40 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // === 新增：產生圖片並顯示在 Modal (解決 iOS 無法直接下載問題) ===
+    async function getBase64Image(url) {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
     function generateImageForSave() {
       const target = document.getElementById('capture-target');
-      const btn = document.querySelector('.btn-screenshot');
-      const originalText = btn.textContent;
-      btn.textContent = '📸 處理中...';
-      btn.disabled = true;
+      const originalText = screenshotBtn.textContent;
+      screenshotBtn.textContent = '📸 處理中...';
+      screenshotBtn.disabled = true;
 
-      // 使用 useCORS: true 嘗試抓圖，若有跨域問題可能會失敗
-      // 但我們優先依賴瀏覽器快取
-      html2canvas(target, {
-        scale: 2,
-        useCORS: true, 
-        allowTaint: true, // 允許跨域圖片 (雖然可能導致 tainted canvas，但在 display mode 沒差)
-        backgroundColor: '#ffffff'
-      }).then(canvas => {
+      html2canvas(target, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
         try {
           const imgUrl = canvas.toDataURL("image/png");
-          // 顯示 Modal
           genImgContainer.innerHTML = `<img src="${imgUrl}" alt="Result Screenshot">`;
           imgModal.style.display = 'flex';
-          
-          btn.textContent = originalText;
-          btn.disabled = false;
+          screenshotBtn.textContent = originalText;
+          screenshotBtn.disabled = false;
         } catch (e) {
-          alert('圖片生成失敗 (安全性限制)，請直接使用手機截圖功能 (電源鍵+音量鍵) 保存畫面！');
-          btn.textContent = originalText;
-          btn.disabled = false;
+          alert('圖片生成失敗，請直接使用手機截圖功能保存畫面！');
+          screenshotBtn.textContent = originalText;
+          screenshotBtn.disabled = false;
         }
       }).catch(err => {
         console.error(err);
         alert('截圖生成失敗，請手動截圖！');
-        btn.textContent = originalText;
-        btn.disabled = false;
+        screenshotBtn.textContent = originalText;
+        screenshotBtn.disabled = false;
       });
     }
 
@@ -671,28 +719,50 @@
       document.getElementById('final-code').textContent = data.prize_key;
 
       const img = document.getElementById('final-img');
-      // ★★★ 關鍵修正：優先使用 Catalog 裡的圖片網址，確保一定能顯示 ★★★
       let safeImgUrl = '';
-      // 嘗試從 Catalog 找一張該種類+該角色的圖
       if (CATALOG.relations[data.type] && CATALOG.relations[data.type][data.color]) {
          const arr = CATALOG.relations[data.type][data.color];
          if (arr.length > 0) safeImgUrl = arr[0];
       }
-      // 如果 Catalog 沒找到，才用 data.image_url
       if (!safeImgUrl) safeImgUrl = data.image_url;
 
       if(safeImgUrl) {
         img.src = safeImgUrl;
         img.style.display = 'block';
+        screenshotBtn.disabled = true;
+        screenshotBtn.textContent = '🔄 準備圖片中...';
+        
+        getBase64Image(safeImgUrl)
+          .then(base64Data => {
+            img.src = base64Data;
+            screenshotBtn.disabled = false;
+            screenshotBtn.textContent = '📸 產生圖片 (長按儲存)';
+          })
+          .catch(err => {
+            console.error("Base64 convert failed", err);
+            screenshotBtn.disabled = false;
+            screenshotBtn.textContent = '📸 產生圖片 (長按儲存)';
+          });
       } else {
         img.style.display = 'none';
+        screenshotBtn.disabled = false;
       }
 
+      // === 扣庫存邏輯 ===
+      // 1. 扣總庫存
       if (CATALOG.stocks[data.type]) {
         CATALOG.stocks[data.type]--;
         if (CATALOG.stocks[data.type] < 0) CATALOG.stocks[data.type] = 0;
-        renderStocks(); 
       }
+      // 2. 扣細項庫存
+      if (CATALOG.lovelyStocks[data.type] && CATALOG.lovelyStocks[data.type][data.color]) {
+        CATALOG.lovelyStocks[data.type][data.color]--;
+        if (CATALOG.lovelyStocks[data.type][data.color] < 0) CATALOG.lovelyStocks[data.type][data.color] = 0;
+      }
+
+      // 重新渲染庫存與面板
+      renderStocks();
+
       inlineResultArea.style.display = 'block';
       setTimeout(() => { inlineResultArea.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
     }
