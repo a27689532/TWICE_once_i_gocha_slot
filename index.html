@@ -69,7 +69,6 @@
       line-height: 1.5;
     }
 
-    /* === 庫存顯示區優化 === */
     #stock-area {
       display: flex;
       flex-wrap: wrap;
@@ -98,7 +97,6 @@
       color: var(--primary);
       font-family: monospace;
     }
-    /* 選中狀態 */
     .stock-badge.active {
       background: var(--primary);
       color: white;
@@ -110,7 +108,6 @@
       color: var(--accent);
     }
 
-    /* === 新增：庫存詳細面板 === */
     #stock-detail-panel {
       display: none;
       background: #fff;
@@ -127,7 +124,7 @@
     
     .detail-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr); /* 兩欄顯示 */
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       text-align: left;
     }
@@ -141,7 +138,6 @@
       color: var(--accent);
     }
 
-    /* 輸入框 */
     input[type="text"] {
       width: 100%;
       box-sizing: border-box;
@@ -289,12 +285,24 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    .final-prize-img {
-      width: 100%;
-      max-height: 350px;
-      object-fit: contain;
-      border-radius: 15px;
+    /* === ★★★ 關鍵修改：圖片容器與樣式 ★★★ === */
+    /* 新增一個固定高度的容器來包住圖片 */
+    .final-img-wrapper {
+      height: 350px; /* 固定高度 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
       margin-bottom: 20px;
+    }
+
+    /* 修改圖片樣式，使用傳統的 auto 寬高來維持比例，html2canvas 才支援 */
+    .final-prize-img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto; 
+      height: auto;
+      /* object-fit: contain; <-- 移除這個，因為 html2canvas 支援度不好 */
+      border-radius: 15px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
@@ -370,7 +378,10 @@
     <div id="inline-result-area">
       <div id="capture-target" style="background:white; padding:15px; border-radius:15px; border: 2px solid #ff6f91;">
         <h2 style="color:var(--secondary); margin:0 0 15px 0; font-size:1.8rem;">🎉 CONGRATULATIONS!</h2>
-        <img id="final-img" class="final-prize-img" src="" alt="Prize">
+        
+        <div class="final-img-wrapper">
+            <img id="final-img" class="final-prize-img" src="" alt="Prize">
+        </div>
         
         <h3 id="final-name" style="color:var(--accent); margin:10px 0; font-size:1.6rem;"></h3>
         <p id="final-detail" style="color:#666; margin:5px 0; font-size:1.2rem; font-weight:bold;"></p>
@@ -402,7 +413,6 @@
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbyfF-yGRiOaEwTfb46Riji-ERnQqjhPL_uJ5rVeekGvI1j4-hmfPu3Jr4MkdeqhfcyHtw/exec';
 
-    // stocks: 總庫存, lovelyStocks: 細項庫存
     let CATALOG = { types: {}, relations: {}, stocks: {}, lovelyStocks: {} };
     const DEFAULT_TYPES = ['雨傘娃', '三麗鷗', '龍蝦扣', '軟糖', '巧克力', '餅乾', '車車', '模型包'];
     const DEFAULT_LOVELYS = ['SAVELY', 'TZUVELY', 'MIVELY', 'JIVELY', 'CHAENG', 'DAHYUN', 'NAYEON', 'JEONG'];
@@ -430,7 +440,7 @@
     const genImgContainer = document.getElementById('generated-img-container');
     const screenshotBtn = document.querySelector('.btn-screenshot');
 
-    let activeStockType = null; // 記錄目前展開的庫存類型
+    let activeStockType = null; 
 
     window.onload = function() { fetchCatalog(); };
 
@@ -483,36 +493,30 @@
           
           badge.innerHTML = `${type} <span>${count} (${probability}%)</span>`;
           
-          // 點擊事件：展開詳細庫存
           badge.onclick = () => toggleStockDetail(type);
           
           stockArea.appendChild(badge);
         }
       }
-      // 如果目前有展開，則重新渲染詳細面板 (確保數字是最新的)
       if (activeStockType) renderDetailPanel();
     }
 
-    // === 切換詳細庫存面板 ===
     function toggleStockDetail(type) {
       if (activeStockType === type) {
-        // 再次點擊同一個 -> 關閉
         activeStockType = null;
         stockDetailPanel.style.display = 'none';
       } else {
-        // 點擊新的 -> 開啟
         activeStockType = type;
         stockDetailPanel.style.display = 'block';
         renderDetailPanel();
       }
-      renderStocks(); // 重新渲染上面的按鈕以顯示 active 狀態
+      renderStocks(); 
     }
 
     function renderDetailPanel() {
       if (!activeStockType) return;
       const details = CATALOG.lovelyStocks[activeStockType] || {};
       
-      // 如果該種類完全沒細項資料
       if (Object.keys(details).length === 0) {
         stockDetailPanel.innerHTML = '<div style="color:#888;">尚無詳細資料</div>';
         return;
@@ -748,19 +752,15 @@
         screenshotBtn.disabled = false;
       }
 
-      // === 扣庫存邏輯 ===
-      // 1. 扣總庫存
       if (CATALOG.stocks[data.type]) {
         CATALOG.stocks[data.type]--;
         if (CATALOG.stocks[data.type] < 0) CATALOG.stocks[data.type] = 0;
       }
-      // 2. 扣細項庫存
       if (CATALOG.lovelyStocks[data.type] && CATALOG.lovelyStocks[data.type][data.color]) {
         CATALOG.lovelyStocks[data.type][data.color]--;
         if (CATALOG.lovelyStocks[data.type][data.color] < 0) CATALOG.lovelyStocks[data.type][data.color] = 0;
       }
 
-      // 重新渲染庫存與面板
       renderStocks();
 
       inlineResultArea.style.display = 'block';
