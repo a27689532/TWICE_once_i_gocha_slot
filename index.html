@@ -74,7 +74,7 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
     .stock-badge {
       background: #fce4ec;
@@ -106,6 +106,14 @@
     }
     .stock-badge.active span {
       color: var(--accent);
+    }
+
+    /* 新增：提示文字樣式 */
+    .stock-hint {
+      font-size: 0.8rem;
+      color: #999;
+      margin-bottom: 20px;
+      font-style: italic;
     }
 
     #stock-detail-panel {
@@ -285,23 +293,19 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* === ★★★ 關鍵修改：圖片容器與樣式 ★★★ === */
-    /* 新增一個固定高度的容器來包住圖片 */
     .final-img-wrapper {
-      height: 350px; /* 固定高度 */
+      height: 350px; 
       display: flex;
       justify-content: center;
       align-items: center;
       margin-bottom: 20px;
     }
 
-    /* 修改圖片樣式，使用傳統的 auto 寬高來維持比例，html2canvas 才支援 */
     .final-prize-img {
       max-width: 100%;
       max-height: 100%;
       width: auto; 
       height: auto;
-      /* object-fit: contain; <-- 移除這個，因為 html2canvas 支援度不好 */
       border-radius: 15px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
@@ -353,6 +357,7 @@
       </a>
       
       <div id="stock-area">載入庫存中...</div>
+      <div class="stock-hint">ℹ️ 點擊種類可查詢各 LOVELYS 庫存</div>
       
       <div id="stock-detail-panel"></div>
 
@@ -544,8 +549,14 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // === ★★★ 修復：防止第二次抽獎圖片空白 ★★★ ===
+    // 方法：在網址後方加上隨機時間戳記 (timestamp)，強迫瀏覽器重新下載，不使用快取
     async function getBase64Image(url) {
-      const response = await fetch(url);
+      // 判斷 url 是否已經有參數，有就用 & 連接，沒有就用 ?
+      const separator = url.includes('?') ? '&' : '?';
+      const noCacheUrl = `${url}${separator}t=${new Date().getTime()}`;
+
+      const response = await fetch(noCacheUrl);
       const blob = await response.blob();
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
