@@ -26,8 +26,9 @@
       align-items: center;
       min-height: 100vh;
       margin: 0;
-      padding: 10px;
+      padding: 10px 10px 30px 10px; /* 底部留多一點空間給結果 */
       overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     .container {
@@ -46,6 +47,7 @@
       border: 3px solid white;
       position: relative;
       z-index: 20;
+      margin-bottom: 20px;
     }
 
     h1 { 
@@ -93,7 +95,7 @@
       border-radius: 10px;
       margin-left: 6px;
       color: var(--primary);
-      font-family: monospace; /* 讓數字寬度一致比較好看 */
+      font-family: monospace;
     }
     
     input[type="text"] {
@@ -135,6 +137,7 @@
       border-radius: 25px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.3);
       position: relative;
+      margin-bottom: 25px; /* 與下方結果區保持距離 */
     }
 
     .machine-status {
@@ -231,41 +234,36 @@
       line-height: 1.2;
     }
 
-    /* === 結果彈窗 === */
-    #result-card {
-      display: none;
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+    /* === 新增：嵌入式結果顯示區 (取代彈窗) === */
+    #inline-result-area {
+      display: none; /* 預設隱藏 */
       background: white;
-      padding: 30px;
-      width: 90%; max-width: 420px;
+      padding: 30px 20px;
       border-radius: 25px;
-      box-shadow: 0 25px 70px rgba(0,0,0,0.6);
-      z-index: 999;
-      animation: popIn 0.5s cubic-bezier(0.17, 0.67, 0.43, 1.45);
+      box-shadow: 0 15px 40px rgba(214, 93, 177, 0.3);
+      border: 3px solid var(--primary);
       text-align: center;
+      animation: slideUp 0.5s ease-out;
     }
-    #overlay {
-      display: none;
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      z-index: 998;
-      backdrop-filter: blur(4px);
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .final-prize-img {
       width: 100%;
-      max-height: 300px;
+      max-height: 350px;
       object-fit: contain;
-      border: 4px solid var(--primary);
       border-radius: 15px;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
     .status-msg { margin-top: 15px; color: var(--primary); font-weight: bold; font-size: 1rem; }
     .error { color: #e53935; }
 
-    /* === 📱 手機版專屬大尺寸設定 === */
+    /* === 📱 手機版專屬設定 === */
     @media screen and (max-width: 600px) {
       :root { 
         --item-height: 120px; 
@@ -288,16 +286,9 @@
         gap: 4px;
       }
     }
-
-    @keyframes popIn {
-      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    }
   </style>
 </head>
 <body>
-
-  <div id="overlay"></div>
 
   <div class="container">
     
@@ -335,17 +326,17 @@
       </div>
     </div>
 
-    <div id="result-card">
-      <h2 style="color:var(--secondary); margin:0 0 10px 0;">🎉 CONGRATULATIONS!</h2>
+    <div id="inline-result-area">
+      <h2 style="color:var(--secondary); margin:0 0 15px 0; font-size:1.8rem;">🎉 CONGRATULATIONS!</h2>
       <img id="final-img" class="final-prize-img" src="" alt="Prize">
-      <h3 id="final-name" style="color:var(--accent); margin:5px 0; font-size:1.5rem;"></h3>
-      <p id="final-detail" style="color:#666; margin:5px 0; font-size:1.1rem;"></p>
-      <div style="background:#eee; padding:5px 15px; border-radius:5px; display:inline-block; margin-top:10px;">
-        <span style="font-size:0.9rem;">序號: </span>
-        <strong id="final-code" style="color:#555; font-size:1.1rem;"></strong>
+      <h3 id="final-name" style="color:var(--accent); margin:10px 0; font-size:1.6rem;"></h3>
+      <p id="final-detail" style="color:#666; margin:5px 0; font-size:1.2rem; font-weight:bold;"></p>
+      <div style="background:#eee; padding:8px 20px; border-radius:10px; display:inline-block; margin-top:15px;">
+        <span style="font-size:1rem;">中獎序號: </span>
+        <strong id="final-code" style="color:#555; font-size:1.2rem; font-family:monospace;"></strong>
       </div>
       <br>
-      <button onclick="resetGame()" class="btn-draw" style="margin-top:20px; padding:12px 40px;">再玩一次</button>
+      <button onclick="resetGame()" class="btn-draw" style="margin-top:30px; padding:15px 50px; background:var(--accent);">再玩一次</button>
     </div>
 
   </div>
@@ -367,17 +358,18 @@
       { name: 'DIAG_BL',rows: [2, 1, 0], svg: 'M0,250 L300,50' }
     ];
 
+    // DOM 元素參考 (移除舊的 resultCard 和 overlay)
     const drawBtn = document.getElementById('draw-btn');
     const codeInput = document.getElementById('code-input');
     const msgBox = document.getElementById('msg-box');
     const startScreen = document.getElementById('start-screen');
     const slotArea = document.getElementById('slot-machine-area');
     const machineStatus = document.getElementById('machine-status');
-    const resultCard = document.getElementById('result-card');
-    const overlay = document.getElementById('overlay');
     const loadingHint = document.getElementById('loading-hint');
     const winPath = document.getElementById('win-path');
     const stockArea = document.getElementById('stock-area');
+    // 新的結果區塊
+    const inlineResultArea = document.getElementById('inline-result-area');
 
     window.onload = function() { fetchCatalog(); };
 
@@ -419,12 +411,9 @@
       }
     }
 
-    // === 修改後的 renderStocks：包含機率計算 ===
     function renderStocks() {
       stockArea.innerHTML = '';
       const stocks = CATALOG.stocks;
-      
-      // 1. 計算總庫存
       const total = Object.values(stocks).reduce((sum, val) => sum + val, 0);
 
       if (total === 0) {
@@ -432,15 +421,11 @@
         return;
       }
       
-      // 2. 排序並顯示
       for (const [type, count] of Object.entries(stocks)) {
         if (count > 0) {
-          // 計算機率 (保留1位小數)
           const probability = ((count / total) * 100).toFixed(1);
-
           const badge = document.createElement('div');
           badge.className = 'stock-badge';
-          // 顯示：種類 數量 (機率%)
           badge.innerHTML = `${type} <span>${count} (${probability}%)</span>`;
           stockArea.appendChild(badge);
         }
@@ -450,20 +435,29 @@
     drawBtn.addEventListener('click', startProcess);
     codeInput.addEventListener('keypress', (e) => { if(e.key==='Enter') startProcess(); });
 
+    // === 修改：重置遊戲邏輯 ===
     function resetGame() {
-      resultCard.style.display = 'none';
-      overlay.style.display = 'none';
+      // 隱藏結果區
+      inlineResultArea.style.display = 'none';
+      // 隱藏拉霸機
       slotArea.style.display = 'none';
+      // 顯示開始畫面
       startScreen.style.display = 'block';
+      
       codeInput.value = '';
       msgBox.textContent = '';
       drawBtn.disabled = false;
       drawBtn.textContent = '開始抽獎';
+      // 捲動回最上方
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function startProcess() {
       const code = codeInput.value.trim().toUpperCase();
       if(!code) return showMsg('請輸入序號', 'error');
+
+      // 確保之前的結果被隱藏
+      inlineResultArea.style.display = 'none';
 
       codeInput.blur();
       drawBtn.disabled = true;
@@ -606,7 +600,9 @@
       return `<div class="slot-item">${content}</div>`;
     }
 
+    // === 修改：顯示結果的邏輯 ===
     function showFinalResult(data) {
+      // 填入資料到嵌入式區塊
       document.getElementById('final-name').textContent = data.display_name;
       document.getElementById('final-detail').textContent = `${data.type} / ${data.color}`;
       document.getElementById('final-code').textContent = data.prize_key;
@@ -619,14 +615,18 @@
         img.style.display = 'none';
       }
 
+      // 扣庫存
       if (CATALOG.stocks[data.type]) {
         CATALOG.stocks[data.type]--;
         if (CATALOG.stocks[data.type] < 0) CATALOG.stocks[data.type] = 0;
         renderStocks(); 
       }
 
-      overlay.style.display = 'block';
-      resultCard.style.display = 'block';
+      // 顯示區塊並捲動
+      inlineResultArea.style.display = 'block';
+      setTimeout(() => {
+        inlineResultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
 
     function showMsg(text, type) {
